@@ -5,14 +5,14 @@ A comprehensive tool for setting up consistent development environments across p
 ## 🚀 Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/pikari-dev-setup.git
-
 # Navigate to your project directory
-cd your-wordpress-project
+cd your-project
+
+# Clone the setup tool
+git clone https://github.com/HelloPikari/pikari-dev-setup.git
 
 # Run the setup
-../pikari-dev-setup/setup.sh
+./pikari-dev-setup/setup.sh
 ```
 
 ## 📋 What's Included
@@ -69,41 +69,48 @@ pikari-dev-setup/
 
 ### Initial Setup
 
-1. Run the setup script from your project root:
+1. From your project root, run the setup script:
    ```bash
-   path/to/pikari-dev-setup/setup.sh
+   ./pikari-dev-setup/setup.sh
    ```
 
 2. Select your project type (currently WordPress only)
 
-3. Follow the prompts to:
+3. Provide project information when prompted:
+   - Project name and description
+   - Author name and email
+   - Project homepage (optional)
+
+4. Follow the prompts to:
    - Copy configuration files
    - Set up pre-commit hooks
    - Create GitHub workflows
    - Generate CLAUDE.md
-   - Update package.json/composer.json
+   - Create/update package.json and composer.json
 
-4. Install dependencies:
-   ```bash
-   npm install
-   composer install
-   ```
+5. The setup will offer to:
+   - Install npm dependencies
+   - Install composer dependencies
+   - Remove the setup folder when complete
 
 ### After Setup
 
 **Run linting:**
+
 ```bash
 npm run lint:all     # Run all linters
 npm run lint:fix     # Auto-fix issues
 ```
 
 **Start development:**
+
 ```bash
 npm start            # Start dev build
 npm run playground   # Launch WordPress Playground
 ```
 
 **Create a release:**
+
 ```bash
 ./bin/release.sh     # Automated release process
 ```
@@ -113,6 +120,7 @@ npm run playground   # Launch WordPress Playground
 ### Adding New Project Types
 
 1. Create a new directory under `pikari-dev-setup/`:
+
    ```bash
    mkdir react
    ```
@@ -128,6 +136,7 @@ npm run playground   # Launch WordPress Playground
 ### Modifying Shared Components
 
 Shared components in the `shared/` directory can be used across all project types:
+
 - Husky configurations
 - Base CLAUDE.md sections
 - Common workflows
@@ -143,6 +152,7 @@ Shared components in the `shared/` directory can be used across all project type
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes

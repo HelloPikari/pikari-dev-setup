@@ -351,12 +351,17 @@ fi
 # Step 9: Cleanup
 print_header "Cleanup"
 
-read -p "Remove pikari-dev-setup folder? (y/N) " -n 1 -r
+# Get the actual setup folder name (handles downloaded zips with different names)
+SETUP_FOLDER=$(dirname "$SCRIPT_DIR")
+SETUP_FOLDER_NAME=$(basename "$SETUP_FOLDER")
+
+read -p "Remove the setup folder '$SETUP_FOLDER_NAME'? (y/N) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    cd ..
-    rm -rf pikari-dev-setup
-    print_info "✓ Setup folder removed"
+    # Change to parent directory first
+    cd "$SETUP_FOLDER/.."
+    rm -rf "$SETUP_FOLDER"
+    print_info "✓ Setup folder '$SETUP_FOLDER_NAME' removed"
 fi
 
 # Final summary
