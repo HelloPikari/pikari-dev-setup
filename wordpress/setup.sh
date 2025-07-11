@@ -92,13 +92,35 @@ cp "$SCRIPT_DIR/vscode/settings.json" .vscode/
 
 print_info "✓ Linting configuration files copied"
 
-# Step 2: Setup Husky
+# Step 2: Ensure package.json exists
+print_header "Setting up package.json"
+
+if [ ! -f "package.json" ]; then
+    print_info "Creating package.json from template..."
+    
+    sed -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
+        -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
+        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
+        -e "s/\[PROJECT_SUBTYPE\]/$PROJECT_SUBTYPE/g" \
+        -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
+        -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
+        -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
+        "$SCRIPT_DIR/package-scripts/package.json" > package.json
+    
+    print_info "✓ package.json created"
+    PACKAGE_JSON_CREATED=true
+else
+    print_info "package.json already exists"
+    PACKAGE_JSON_CREATED=false
+fi
+
+# Step 3: Setup Husky
 print_header "Setting up Husky Pre-commit Hooks"
 
 # Run shared Husky setup
-bash "$SHARED_DIR/husky/setup.sh"
+bash "$SHARED_DIR/husky/setup.sh" wordpress
 
-# Step 3: Setup GitHub Workflows
+# Step 4: Setup GitHub Workflows
 print_header "Setting up GitHub Workflows"
 
 mkdir -p .github/workflows
@@ -117,7 +139,7 @@ done
 
 print_info "✓ GitHub workflows created"
 
-# Step 4: Setup WordPress Playground
+# Step 5: Setup WordPress Playground
 print_header "Setting up WordPress Playground"
 
 if [ ! -d "_playground" ]; then
@@ -141,7 +163,7 @@ else
     print_warning "⚠ _playground directory already exists, skipping"
 fi
 
-# Step 5: Setup Release Scripts
+# Step 6: Setup Release Scripts
 print_header "Setting up Release Automation"
 
 if [ ! -d "bin" ]; then
@@ -153,12 +175,12 @@ else
     print_warning "⚠ bin directory already exists, skipping release script"
 fi
 
-# Step 6: Update package.json and composer.json
+# Step 7: Update package.json and composer.json
 print_header "Updating Configuration Files"
 
-# Update package.json
-if [ -f "package.json" ] && command -v jq &> /dev/null; then
-    read -p "Would you like to automatically add scripts to package.json? (y/N) " -n 1 -r
+# Update existing package.json if needed
+if [ "$PACKAGE_JSON_CREATED" = "false" ] && command -v jq &> /dev/null; then
+    read -p "Would you like to update the existing package.json with WordPress scripts? (y/N) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         # Backup package.json
@@ -220,7 +242,7 @@ elif command -v jq &> /dev/null; then
     fi
 fi
 
-# Step 7: Create CLAUDE.md
+# Step 8: Create CLAUDE.md
 print_header "Creating CLAUDE.md"
 
 # Determine which sections to include based on project type
@@ -327,7 +349,7 @@ else
     print_info "✓ CLAUDE.md created"
 fi
 
-# Step 8: Install dependencies
+# Step 9: Install dependencies
 print_header "Installing Dependencies"
 
 if [ -f "package.json" ]; then
@@ -348,7 +370,7 @@ if [ -f "composer.json" ]; then
     fi
 fi
 
-# Step 9: Cleanup
+# Step 10: Cleanup
 print_header "Cleanup"
 
 # Get the actual setup folder name (handles downloaded zips with different names)
