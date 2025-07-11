@@ -99,14 +99,19 @@ print_info "Updating version numbers..."
 # Update main plugin/theme file
 sed -i.bak "s/Version: .*/Version: $NEW_VERSION/" "$MAIN_FILE" && rm "${MAIN_FILE}.bak"
 
-# Update version constant if it exists
-if [ -f "includes/plugin.php" ]; then
-    CONSTANT_NAME=$(echo "${PWD##*/}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')_VERSION
-    sed -i.bak "s/define('${CONSTANT_NAME}', '.*');/define('${CONSTANT_NAME}', '$NEW_VERSION');/" includes/plugin.php && rm includes/plugin.php.bak
+# Update version constant in main file if it exists
+CONSTANT_NAME=$(echo "${PWD##*/}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')_VERSION
+if grep -q "define( '$CONSTANT_NAME'" "$MAIN_FILE"; then
+    sed -i.bak "s/define( '$CONSTANT_NAME', '.*' );/define( '$CONSTANT_NAME', '$NEW_VERSION' );/" "$MAIN_FILE" && rm "${MAIN_FILE}.bak"
 fi
 
 # Update package.json
 jq ".version = \"$NEW_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
+
+# Update composer.json if it exists
+if [ -f "composer.json" ]; then
+    jq ".version = \"$NEW_VERSION\"" composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+fi
 
 # Update CHANGELOG.md if it exists
 if [ -f "CHANGELOG.md" ]; then
@@ -133,6 +138,7 @@ fi
 print_info "Committing version updates..."
 git add "$MAIN_FILE" package.json
 [ -f "includes/plugin.php" ] && git add includes/plugin.php
+[ -f "composer.json" ] && git add composer.json
 [ -f "CHANGELOG.md" ] && git add CHANGELOG.md
 git commit -m "Prepare release v$NEW_VERSION"
 
