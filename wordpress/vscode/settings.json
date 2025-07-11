@@ -39,10 +39,13 @@
 	
 	// PHP Settings
 	"[php]": {
-		"editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+		"editor.formatOnSave": false,
+		"editor.defaultFormatter": null
 	},
 	"phpcs.enable": true,
-	"phpcs.standard": "WordPress",
+	"phpcs.standard": "./phpcs.xml",
+	"phpcbf.enable": true,
+	"phpcbf.standard": "./phpcs.xml",
 	
 	// ESLint Settings
 	"eslint.enable": true,

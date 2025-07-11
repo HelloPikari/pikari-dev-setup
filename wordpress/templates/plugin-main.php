@@ -15,7 +15,7 @@
  */
 
 // Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( \! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -43,7 +43,7 @@ function [PLUGIN_FUNCTION_PREFIX]_init() {
 
     // Hook into WordPress.
     add_action( 'wp_enqueue_scripts', '[PLUGIN_FUNCTION_PREFIX]_enqueue_scripts' );
-    
+
     // Add more initialization code here.
 }
 add_action( 'plugins_loaded', '[PLUGIN_FUNCTION_PREFIX]_init' );
@@ -75,3 +75,4 @@ function [PLUGIN_FUNCTION_PREFIX]_deactivate() {
     flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, '[PLUGIN_FUNCTION_PREFIX]_deactivate' );
+

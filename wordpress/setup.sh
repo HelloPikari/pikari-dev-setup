@@ -182,6 +182,7 @@ print_header "Setting up Linting"
 # Copy linting files
 cp "$SCRIPT_DIR/linting/.eslintrc.cjs" .
 cp "$SCRIPT_DIR/linting/.prettierrc" .
+cp "$SCRIPT_DIR/linting/.prettierignore" .
 cp "$SHARED_DIR/linting/.stylelintrc.json" .
 cp "$SCRIPT_DIR/linting/phpcs.xml" .
 
