@@ -1,0 +1,112 @@
+name: Update Build Branch
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/workflows/build-branch.yml'
+      - '**.md'
+
+permissions:
+  contents: write
+
+jobs:
+  update-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+        coverage: none
+    
+    - name: Install npm dependencies
+      run: npm ci
+    
+    - name: Install Composer dependencies
+      run: |
+        # For the build branch, we don't need composer dependencies
+        # The autoloader is only used for development
+        echo "Skipping composer install for build branch"
+    
+    - name: Build plugin
+      run: npm run build
+    
+    - name: Configure git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+    
+    - name: Create and push to build branch
+      run: |
+        # Save current commit info
+        COMMIT_MSG=$(git log -1 --pretty=%B)
+        COMMIT_AUTHOR_NAME=$(git log -1 --pretty="%an")
+        COMMIT_AUTHOR_EMAIL=$(git log -1 --pretty="%ae")
+        COMMIT_SHA=$(git rev-parse HEAD)
+        
+        # Check if build branch exists on remote
+        if git ls-remote --heads origin build | grep -q build; then
+          echo "Build branch exists, fetching it"
+          git fetch origin build:build
+        else
+          echo "Build branch doesn't exist, will create it"
+        fi
+        
+        # Create or checkout build branch
+        git checkout -B build
+        
+        # Create a custom .gitignore for the build branch
+        echo "node_modules/" > .gitignore
+        echo "vendor/" >> .gitignore
+        echo ".DS_Store" >> .gitignore
+        echo "*.log" >> .gitignore
+        echo ".env" >> .gitignore
+        echo ".env.*" >> .gitignore
+        echo ".vscode/" >> .gitignore
+        echo ".idea/" >> .gitignore
+        echo "*.swp" >> .gitignore
+        echo "*.swo" >> .gitignore
+        echo "tests/coverage/" >> .gitignore
+        echo "tests/results/" >> .gitignore
+        echo ".phpunit.result.cache" >> .gitignore
+        echo ".husky/" >> .gitignore
+        
+        # Add all files except those in .gitignore
+        git add -A
+        
+        # Check if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          # Commit with original author info (skip hooks)
+          git -c "user.name=$COMMIT_AUTHOR_NAME" -c "user.email=$COMMIT_AUTHOR_EMAIL" \
+            commit --no-verify -m "$COMMIT_MSG" -m "Built from commit: $COMMIT_SHA"
+        fi
+        
+        # Force push to build branch
+        git push --force-with-lease origin build
+    
+    - name: Add build branch protection comment
+      if: success()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const commit = context.payload.head_commit;
+          if (commit) {
+            const message = `✅ Build branch updated with compiled assets from commit ${commit.id.substring(0, 7)}`;
+            console.log(message);
+          }

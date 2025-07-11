@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "lint": "phpcs",
+    "lint:fix": "phpcbf",
+    "lint:file": "phpcs --standard=phpcs.xml",
+    "test": "phpunit",
+    "test:coverage": "phpunit --coverage-html tests/coverage"
+  }
+}
