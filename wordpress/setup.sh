@@ -77,7 +77,39 @@ print_info "Detected project: $PROJECT_NAME ($PROJECT_SUBTYPE)"
 print_info "Main file: $MAIN_FILE"
 print_info "Plugin slug: $PLUGIN_SLUG"
 
-# Step 1: Setup Linting
+# Step 1: Create main plugin file if it doesn't exist
+if [ "$PROJECT_SUBTYPE" = "plugin" ] && [ ! -f "$MAIN_FILE" ]; then
+    print_header "Creating Plugin Entry Point"
+    
+    # Generate plugin constant name (uppercase, underscores)
+    PLUGIN_CONSTANT=$(echo "$PLUGIN_SLUG" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+    
+    # Generate function prefix (lowercase, underscores)
+    PLUGIN_FUNCTION_PREFIX=$(echo "$PLUGIN_SLUG" | tr '-' '_')
+    
+    # Create plugin file from template
+    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
+        -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
+        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
+        -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
+        -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
+        -e "s/\[PLUGIN_CONSTANT\]/$PLUGIN_CONSTANT/g" \
+        -e "s/\[PLUGIN_FUNCTION_PREFIX\]/$PLUGIN_FUNCTION_PREFIX/g" \
+        "$SCRIPT_DIR/templates/plugin-main.php" > "$MAIN_FILE"
+    
+    # Remove empty Plugin URI and Author URI if no homepage
+    if [ -z "$PROJECT_HOMEPAGE" ]; then
+        sed -i.bak -e '/Plugin URI:  $/d' -e '/Author URI:  $/d' "$MAIN_FILE" && rm "${MAIN_FILE}.bak"
+    fi
+    
+    print_info "✓ Created $MAIN_FILE"
+    
+    # Create basic plugin directory structure
+    mkdir -p assets/css assets/js includes languages
+    print_info "✓ Created plugin directory structure"
+fi
+
+# Step 2: Setup Linting
 print_header "Setting up Linting"
 
 # Copy linting files
@@ -92,7 +124,7 @@ cp "$SCRIPT_DIR/vscode/settings.json" .vscode/
 
 print_info "✓ Linting configuration files copied"
 
-# Step 2: Ensure package.json exists
+# Step 3: Ensure package.json exists
 print_header "Setting up package.json"
 
 if [ ! -f "package.json" ]; then
@@ -124,13 +156,13 @@ else
     PACKAGE_JSON_CREATED=false
 fi
 
-# Step 3: Setup Husky
+# Step 4: Setup Husky
 print_header "Setting up Husky Pre-commit Hooks"
 
 # Run shared Husky setup
 bash "$SHARED_DIR/husky/setup.sh" wordpress
 
-# Step 4: Setup GitHub Workflows
+# Step 5: Setup GitHub Workflows
 print_header "Setting up GitHub Workflows"
 
 mkdir -p .github/workflows
@@ -149,7 +181,7 @@ done
 
 print_info "✓ GitHub workflows created"
 
-# Step 5: Setup WordPress Playground
+# Step 6: Setup WordPress Playground
 print_header "Setting up WordPress Playground"
 
 if [ ! -d "_playground" ]; then
@@ -173,7 +205,7 @@ else
     print_warning "⚠ _playground directory already exists, skipping"
 fi
 
-# Step 6: Setup Release Scripts
+# Step 7: Setup Release Scripts
 print_header "Setting up Release Automation"
 
 if [ ! -d "bin" ]; then
@@ -185,7 +217,7 @@ else
     print_warning "⚠ bin directory already exists, skipping release script"
 fi
 
-# Step 7: Update package.json and composer.json
+# Step 8: Update package.json and composer.json
 print_header "Updating Configuration Files"
 
 # Update existing package.json if needed
@@ -262,7 +294,7 @@ elif command -v jq &> /dev/null; then
     fi
 fi
 
-# Step 8: Create CLAUDE.md
+# Step 9: Create CLAUDE.md
 print_header "Creating CLAUDE.md"
 
 # Determine which sections to include based on project type
@@ -290,20 +322,26 @@ if [ -f "CLAUDE.md" ]; then
         general_standards=$(cat "$SHARED_DIR/claude/sections/coding-standards.md")
         general_security=$(cat "$SHARED_DIR/claude/sections/security-practices.md")
         
-        # Use awk for multi-line replacements
-        awk -v ws="$wordpress_standards" '{ gsub(/\[WORDPRESS_STANDARDS\]/, ws); print }' CLAUDE.md.tmp > CLAUDE.md.tmp2
-        mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+        # Use awk for multi-line replacements, but clean up properly
+        cp CLAUDE.md.tmp CLAUDE.md.working
         
-        awk -v ws="$wordpress_security" '{ gsub(/\[WORDPRESS_SECURITY\]/, ws); print }' CLAUDE.md.tmp > CLAUDE.md.tmp2
-        mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+        awk -v ws="$wordpress_standards" '{ gsub(/\[WORDPRESS_STANDARDS\]/, ws); print }' CLAUDE.md.working > CLAUDE.md.tmp
+        cp CLAUDE.md.tmp CLAUDE.md.working
         
-        awk -v gs="$general_standards" '{ gsub(/\[GENERAL_STANDARDS\]/, gs); print }' CLAUDE.md.tmp > CLAUDE.md.tmp2
-        mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+        awk -v ws="$wordpress_security" '{ gsub(/\[WORDPRESS_SECURITY\]/, ws); print }' CLAUDE.md.working > CLAUDE.md.tmp
+        cp CLAUDE.md.tmp CLAUDE.md.working
         
-        awk -v gs="$general_security" '{ gsub(/\[GENERAL_SECURITY\]/, gs); print }' CLAUDE.md.tmp > CLAUDE.md.tmp2
-        mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+        awk -v gs="$general_standards" '{ gsub(/\[GENERAL_STANDARDS\]/, gs); print }' CLAUDE.md.working > CLAUDE.md.tmp
+        cp CLAUDE.md.tmp CLAUDE.md.working
         
-        mv CLAUDE.md.tmp CLAUDE.md
+        awk -v gs="$general_security" '{ gsub(/\[GENERAL_SECURITY\]/, gs); print }' CLAUDE.md.working > CLAUDE.md.tmp
+        
+        # Final replacements
+        sed -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
+            -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.tmp > CLAUDE.md
+        
+        # Clean up ALL temporary files
+        rm -f CLAUDE.md.tmp CLAUDE.md.tmp2 CLAUDE.md.working
         print_info "✓ CLAUDE.md created"
     fi
 else
@@ -328,14 +366,17 @@ else
     # Create temporary file for processing
     cp CLAUDE.md CLAUDE.md.tmp
     
-    # Replace sections using temporary files
+    # Use awk for multi-line replacements, but clean up properly
+    cp CLAUDE.md.tmp CLAUDE.md.working
+    
     awk -v content="$wordpress_standards" '
         /\[WORDPRESS_STANDARDS\]/ {
             print content
             next
         }
         { print }
-    ' CLAUDE.md.tmp > CLAUDE.md.tmp2 && mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+    ' CLAUDE.md.working > CLAUDE.md.tmp
+    cp CLAUDE.md.tmp CLAUDE.md.working
     
     awk -v content="$wordpress_security" '
         /\[WORDPRESS_SECURITY\]/ {
@@ -343,7 +384,8 @@ else
             next
         }
         { print }
-    ' CLAUDE.md.tmp > CLAUDE.md.tmp2 && mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+    ' CLAUDE.md.working > CLAUDE.md.tmp
+    cp CLAUDE.md.tmp CLAUDE.md.working
     
     awk -v content="$general_standards" '
         /\[GENERAL_STANDARDS\]/ {
@@ -351,7 +393,8 @@ else
             next
         }
         { print }
-    ' CLAUDE.md.tmp > CLAUDE.md.tmp2 && mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+    ' CLAUDE.md.working > CLAUDE.md.tmp
+    cp CLAUDE.md.tmp CLAUDE.md.working
     
     awk -v content="$general_security" '
         /\[GENERAL_SECURITY\]/ {
@@ -359,17 +402,18 @@ else
             next
         }
         { print }
-    ' CLAUDE.md.tmp > CLAUDE.md.tmp2 && mv CLAUDE.md.tmp2 CLAUDE.md.tmp
+    ' CLAUDE.md.working > CLAUDE.md.tmp
     
-    # Clean up remaining placeholders with defaults
-    sed -i.bak -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
-        -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.tmp && rm CLAUDE.md.tmp.bak
+    # Final replacements and cleanup
+    sed -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
+        -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.tmp > CLAUDE.md
     
-    mv CLAUDE.md.tmp CLAUDE.md
+    # Clean up ALL temporary files
+    rm -f CLAUDE.md.tmp CLAUDE.md.tmp2 CLAUDE.md.working
     print_info "✓ CLAUDE.md created"
 fi
 
-# Step 9: Install dependencies
+# Step 10: Install dependencies
 print_header "Installing Dependencies"
 
 if [ -f "package.json" ]; then
@@ -390,7 +434,7 @@ if [ -f "composer.json" ]; then
     fi
 fi
 
-# Step 10: Cleanup
+# Step 11: Cleanup
 print_header "Cleanup"
 
 # Get the actual setup folder name (handles downloaded zips with different names)
