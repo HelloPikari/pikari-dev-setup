@@ -154,7 +154,8 @@ INTERVAL=10
 
 while [ $WAIT_TIME -lt $MAX_WAIT ]; do
     # Check if build branch has been updated with our commit
-    git fetch origin build:build >/dev/null 2>&1 || true
+    # Fetch without creating local branch to avoid conflicts
+    git fetch origin >/dev/null 2>&1 || true
     
     # Check if the build branch contains our commit
     if git branch -r --contains $COMMIT_SHA | grep -q "origin/build"; then
@@ -178,10 +179,10 @@ fi
 # Step 5: Create tag from build branch
 print_info "Creating tag v$NEW_VERSION from build branch..."
 
-# Fetch the latest build branch
-git fetch origin build:build
+# Fetch the latest build branch (use --force to handle force-pushed branch)
+git fetch origin build --force
 
-# Create the tag from the build branch
+# Create the tag from the build branch (use origin/build to avoid local branch issues)
 git tag -a "v$NEW_VERSION" origin/build -m "Release v$NEW_VERSION"
 
 # Push the tag
