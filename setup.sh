@@ -3,6 +3,12 @@
 # Pikari Development Environment Setup
 # This script helps you choose and install the appropriate development environment
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Source shared functions
+source "$SCRIPT_DIR/shared/functions.sh"
+
 echo ""
 echo "██████╗ ██╗██╗  ██╗ █████╗ ██████╗ ██╗"
 echo "██╔══██╗██║██║ ██╔╝██╔══██╗██╔══██╗██║"
@@ -36,6 +42,9 @@ echo ""
 case $REPLY in
     1)
         echo "Starting WordPress development environment setup..."
+        PROJECT_TYPE="wordpress"
+        # Collect project information
+        collect_project_info
         # Pass all arguments to the wordpress setup script
         bash "$(dirname "$0")/wordpress/setup.sh" "$@"
         ;;

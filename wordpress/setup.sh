@@ -5,45 +5,32 @@
 
 set -e  # Exit on any error
 
-# Color codes for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Print functions
-print_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_header() {
-    echo ""
-    echo -e "${BLUE}=== $1 ===${NC}"
-    echo ""
-}
-
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SHARED_DIR="$SCRIPT_DIR/../shared"
 
-# Function to get project information
-get_project_info() {
-    # Try to get project name from main PHP file
-    local main_file=$(find . -maxdepth 1 -name "*.php" -exec grep -l "Plugin Name:\|Theme Name:" {} \; | head -1)
+# Source shared functions
+source "$SHARED_DIR/functions.sh"
+
+# Function to get WordPress-specific project information
+get_wordpress_info() {
+    # Use environment variables if available from main setup
+    if [ -n "$PIKARI_PROJECT_NAME" ]; then
+        PROJECT_NAME="$PIKARI_PROJECT_NAME"
+    else
+        # Fallback to auto-detection
+        local main_file=$(find . -maxdepth 1 -name "*.php" -exec grep -l "Plugin Name:\|Theme Name:" {} \; | head -1)
+        if [ -n "$main_file" ]; then
+            PROJECT_NAME=$(grep -E "Plugin Name:|Theme Name:" "$main_file" | head -1 | sed 's/.*: //' | sed 's/\*//' | xargs)
+        else
+            PROJECT_NAME=$(basename "$(pwd)")
+        fi
+    fi
     
+    # Auto-detect main file and subtype
+    local main_file=$(find . -maxdepth 1 -name "*.php" -exec grep -l "Plugin Name:\|Theme Name:" {} \; | head -1)
     if [ -n "$main_file" ]; then
-        PROJECT_NAME=$(grep -E "Plugin Name:|Theme Name:" "$main_file" | head -1 | sed 's/.*: //' | sed 's/\*//' | xargs)
         MAIN_FILE=$(basename "$main_file")
-        
         # Determine if it's a plugin or theme
         if grep -q "Plugin Name:" "$main_file"; then
             PROJECT_SUBTYPE="plugin"
@@ -51,8 +38,6 @@ get_project_info() {
             PROJECT_SUBTYPE="theme"
         fi
     else
-        # Fallback to directory name
-        PROJECT_NAME=$(basename "$(pwd)")
         MAIN_FILE="${PROJECT_NAME}.php"
         PROJECT_SUBTYPE="plugin"
     fi
@@ -60,15 +45,15 @@ get_project_info() {
     # Get plugin slug from directory name
     PLUGIN_SLUG=$(basename "$(pwd)")
     
-    # Get GitHub info from git remote
-    if git remote get-url origin 2>/dev/null | grep -q github.com; then
-        GITHUB_URL=$(git remote get-url origin | sed 's/\.git$//')
-        GITHUB_ORG=$(echo "$GITHUB_URL" | sed 's/.*github.com[:/]//' | cut -d'/' -f1)
-        GITHUB_REPO=$(echo "$GITHUB_URL" | sed 's/.*github.com[:/]//' | cut -d'/' -f2)
-    else
-        GITHUB_ORG="[YOUR_GITHUB_ORG]"
-        GITHUB_REPO="[YOUR_GITHUB_REPO]"
-    fi
+    # Use GitHub info from environment or fallback
+    GITHUB_ORG="${PIKARI_GITHUB_ORG:-[YOUR_GITHUB_ORG]}"
+    GITHUB_REPO="${PIKARI_GITHUB_REPO:-[YOUR_GITHUB_REPO]}"
+    
+    # Use other environment variables
+    PROJECT_DESCRIPTION="${PIKARI_PROJECT_DESCRIPTION:-WordPress $PROJECT_SUBTYPE}"
+    AUTHOR_NAME="${PIKARI_AUTHOR_NAME:-Your Name}"
+    AUTHOR_EMAIL="${PIKARI_AUTHOR_EMAIL:-your@email.com}"
+    PROJECT_HOMEPAGE="${PIKARI_PROJECT_HOMEPAGE:-}"
 }
 
 # Start setup
@@ -85,8 +70,8 @@ if [ "$php_files" -eq 0 ] && [ ! -f "style.css" ]; then
     fi
 fi
 
-# Get project information
-get_project_info
+# Get WordPress-specific project information
+get_wordpress_info
 
 print_info "Detected project: $PROJECT_NAME ($PROJECT_SUBTYPE)"
 print_info "Main file: $MAIN_FILE"
@@ -98,7 +83,7 @@ print_header "Setting up Linting"
 # Copy linting files
 cp "$SCRIPT_DIR/linting/.eslintrc.cjs" .
 cp "$SCRIPT_DIR/linting/.prettierrc" .
-cp "$SCRIPT_DIR/linting/.stylelintrc.json" .
+cp "$SHARED_DIR/linting/.stylelintrc.json" .
 cp "$SCRIPT_DIR/linting/phpcs.xml" .
 
 # Copy VS Code settings
@@ -192,8 +177,32 @@ if [ -f "package.json" ] && command -v jq &> /dev/null; then
     fi
 fi
 
-# Update composer.json
-if [ -f "composer.json" ] && command -v jq &> /dev/null; then
+# Handle composer.json
+if [ ! -f "composer.json" ]; then
+    read -p "No composer.json found. Would you like to create one for PHP linting? (Y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        # Create composer.json from template
+        # Generate author slug from author name (lowercase, replace spaces with hyphens)
+        AUTHOR_SLUG=$(echo "$AUTHOR_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g')
+        
+        sed -e "s/\[AUTHOR_SLUG\]/$AUTHOR_SLUG/g" \
+            -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
+            -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
+            -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
+            -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
+            -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
+            -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
+            "$SCRIPT_DIR/package-scripts/composer.json" > composer.json
+        
+        # Set type based on project subtype
+        if [ "$PROJECT_SUBTYPE" = "theme" ]; then
+            sed -i.bak 's/"type": "wordpress-plugin"/"type": "wordpress-theme"/' composer.json && rm composer.json.bak
+        fi
+        
+        print_info "✓ composer.json created"
+    fi
+elif command -v jq &> /dev/null; then
     read -p "Would you like to automatically add scripts to composer.json? (y/N) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -226,6 +235,7 @@ if [ -f "CLAUDE.md" ]; then
         
         # Replace placeholders
         sed -i.bak -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
+            -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
             -e "s/\[PROJECT_SUBTYPE\]/$PROJECT_SUBTYPE/g" \
             -e "s/\[MAIN_FILE\]/$MAIN_FILE/g" \
             -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
@@ -251,13 +261,6 @@ if [ -f "CLAUDE.md" ]; then
         awk -v gs="$general_security" '{ gsub(/\[GENERAL_SECURITY\]/, gs); print }' CLAUDE.md.tmp > CLAUDE.md.tmp2
         mv CLAUDE.md.tmp2 CLAUDE.md.tmp
         
-        # Add project description placeholder
-        echo "" >> CLAUDE.md.tmp
-        echo "Please update the following in CLAUDE.md:" >> CLAUDE.md.tmp
-        echo "- [PROJECT_DESCRIPTION] - Brief description of what your $PROJECT_SUBTYPE does" >> CLAUDE.md.tmp
-        echo "- [RELEASE_PROCESS] - Your specific release process" >> CLAUDE.md.tmp
-        echo "- [CUSTOM_SECTIONS] - Any project-specific sections" >> CLAUDE.md.tmp
-        
         mv CLAUDE.md.tmp CLAUDE.md
         print_info "✓ CLAUDE.md created"
     fi
@@ -267,6 +270,7 @@ else
     
     # Replace placeholders (same as above)
     sed -i.bak -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
+        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
         -e "s/\[PROJECT_SUBTYPE\]/$PROJECT_SUBTYPE/g" \
         -e "s/\[MAIN_FILE\]/$MAIN_FILE/g" \
         -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
@@ -316,8 +320,7 @@ else
     ' CLAUDE.md.tmp > CLAUDE.md.tmp2 && mv CLAUDE.md.tmp2 CLAUDE.md.tmp
     
     # Clean up remaining placeholders with defaults
-    sed -i.bak -e "s/\[PROJECT_DESCRIPTION\]/[Add your project description here]/g" \
-        -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
+    sed -i.bak -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
         -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.tmp && rm CLAUDE.md.tmp.bak
     
     mv CLAUDE.md.tmp CLAUDE.md
