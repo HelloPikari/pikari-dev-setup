@@ -16,7 +16,7 @@
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -38,13 +38,13 @@ define( '[PLUGIN_CONSTANT]_URL', plugin_dir_url( __FILE__ ) );
  * Initialize the plugin.
  */
 function [PLUGIN_FUNCTION_PREFIX]_init() {
-	// Load plugin text domain.
-	load_plugin_textdomain( '[PLUGIN_SLUG]', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+    // Load plugin text domain.
+    load_plugin_textdomain( '[PLUGIN_SLUG]', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
-	// Hook into WordPress.
-	add_action( 'wp_enqueue_scripts', '[PLUGIN_FUNCTION_PREFIX]_enqueue_scripts' );
-	
-	// Add more initialization code here.
+    // Hook into WordPress.
+    add_action( 'wp_enqueue_scripts', '[PLUGIN_FUNCTION_PREFIX]_enqueue_scripts' );
+    
+    // Add more initialization code here.
 }
 add_action( 'plugins_loaded', '[PLUGIN_FUNCTION_PREFIX]_init' );
 
@@ -52,18 +52,18 @@ add_action( 'plugins_loaded', '[PLUGIN_FUNCTION_PREFIX]_init' );
  * Enqueue plugin scripts and styles.
  */
 function [PLUGIN_FUNCTION_PREFIX]_enqueue_scripts() {
-	// Enqueue your scripts and styles here.
-	// Example:
-	// wp_enqueue_style( '[PLUGIN_SLUG]', [PLUGIN_CONSTANT]_URL . 'assets/css/style.css', array(), [PLUGIN_CONSTANT]_VERSION );
-	// wp_enqueue_script( '[PLUGIN_SLUG]', [PLUGIN_CONSTANT]_URL . 'assets/js/script.js', array( 'jquery' ), [PLUGIN_CONSTANT]_VERSION, true );
+    // Enqueue your scripts and styles here.
+    // Example:
+    // wp_enqueue_style( '[PLUGIN_SLUG]', [PLUGIN_CONSTANT]_URL . 'assets/css/style.css', array(), [PLUGIN_CONSTANT]_VERSION );
+    // wp_enqueue_script( '[PLUGIN_SLUG]', [PLUGIN_CONSTANT]_URL . 'assets/js/script.js', array( 'jquery' ), [PLUGIN_CONSTANT]_VERSION, true );
 }
 
 /**
  * Activation hook.
  */
 function [PLUGIN_FUNCTION_PREFIX]_activate() {
-	// Code to run on plugin activation.
-	flush_rewrite_rules();
+    // Code to run on plugin activation.
+    flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, '[PLUGIN_FUNCTION_PREFIX]_activate' );
 
@@ -71,7 +71,7 @@ register_activation_hook( __FILE__, '[PLUGIN_FUNCTION_PREFIX]_activate' );
  * Deactivation hook.
  */
 function [PLUGIN_FUNCTION_PREFIX]_deactivate() {
-	// Code to run on plugin deactivation.
-	flush_rewrite_rules();
+    // Code to run on plugin deactivation.
+    flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, '[PLUGIN_FUNCTION_PREFIX]_deactivate' );

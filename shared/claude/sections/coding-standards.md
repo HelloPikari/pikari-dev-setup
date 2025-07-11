@@ -1,3 +1,12 @@
+### Code Style and Linting
+
+**IMPORTANT**: All generated code MUST follow the linting configurations defined in this project:
+
+- **PHP**: Use 4 spaces for indentation (NO TABS) - see phpcs.xml
+- **JavaScript**: Follow ESLint + Prettier configuration
+- **CSS/SCSS**: Follow Stylelint configuration
+- Generated code must pass all linting checks without modifications
+
 ### General Principles
 - Write clean, readable, and maintainable code
 - Follow the principle of least surprise

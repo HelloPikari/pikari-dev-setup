@@ -1,5 +1,6 @@
 ### PHP Coding Standards
-- Follow WordPress Coding Standards with 4 spaces indentation (not tabs)
+- Follow WordPress Coding Standards with **4 spaces indentation (NOT TABS)**
+- This project's phpcs.xml enforces space-based indentation
 - Use meaningful function and variable names with underscores (not camelCase)
 - Prefix all global functions with your plugin/theme prefix
 - Document all functions with proper PHPDoc blocks
@@ -8,7 +9,7 @@
 ### JavaScript Standards
 - Use WordPress ESLint configuration
 - Single quotes for strings
-- Tab indentation for JS files
+- Space indentation as configured in .eslintrc.cjs
 - Meaningful variable names in camelCase
 - Use `wp` global for WordPress JavaScript APIs
 
