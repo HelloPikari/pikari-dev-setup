@@ -96,6 +96,14 @@ collect_project_info() {
     echo "Project Homepage (optional, e.g., https://example.com):"
     read -p "> " PIKARI_PROJECT_HOMEPAGE
     
+    # Version
+    echo ""
+    echo "Initial version (press Enter to use: 1.0.0)"
+    read -p "> " version_input
+    PIKARI_VERSION=${version_input:-1.0.0}
+    # Remove 'v' prefix if provided
+    PIKARI_VERSION=${PIKARI_VERSION#v}
+    
     # Get GitHub info from git remote if available
     if git remote get-url origin 2>/dev/null | grep -q github.com; then
         GITHUB_URL=$(git remote get-url origin | sed 's/\.git$//')
@@ -112,6 +120,7 @@ collect_project_info() {
     export PIKARI_AUTHOR_NAME
     export PIKARI_AUTHOR_EMAIL
     export PIKARI_PROJECT_HOMEPAGE
+    export PIKARI_VERSION
     export PIKARI_GITHUB_ORG
     export PIKARI_GITHUB_REPO
     export PROJECT_TYPE
@@ -120,6 +129,7 @@ collect_project_info() {
     print_header "Project Information Summary"
     echo "Project Name: $PIKARI_PROJECT_NAME"
     echo "Description: $PIKARI_PROJECT_DESCRIPTION"
+    echo "Version: $PIKARI_VERSION"
     echo "Author: $PIKARI_AUTHOR_NAME <$PIKARI_AUTHOR_EMAIL>"
     if [ -n "$PIKARI_PROJECT_HOMEPAGE" ]; then
         echo "Homepage: $PIKARI_PROJECT_HOMEPAGE"

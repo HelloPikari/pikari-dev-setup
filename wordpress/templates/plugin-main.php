@@ -3,7 +3,7 @@
  * Plugin Name: [PROJECT_NAME]
  * Plugin URI:  [PROJECT_HOMEPAGE]
  * Description: [PROJECT_DESCRIPTION]
- * Version:     1.0.0
+ * Version:     [VERSION]
  * Author:      [AUTHOR_NAME]
  * Author URI:  [PROJECT_HOMEPAGE]
  * License:     GPL-2.0-or-later
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-define( '[PLUGIN_CONSTANT]_VERSION', '1.0.0' );
+define( '[PLUGIN_CONSTANT]_VERSION', '[VERSION]' );
 
 /**
  * Plugin directory path.

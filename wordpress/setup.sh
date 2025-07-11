@@ -54,6 +54,7 @@ get_wordpress_info() {
     AUTHOR_NAME="${PIKARI_AUTHOR_NAME:-Your Name}"
     AUTHOR_EMAIL="${PIKARI_AUTHOR_EMAIL:-your@email.com}"
     PROJECT_HOMEPAGE="${PIKARI_PROJECT_HOMEPAGE:-}"
+    VERSION="${PIKARI_VERSION:-1.0.0}"
 }
 
 # Start setup
@@ -91,6 +92,7 @@ if [ "$PROJECT_SUBTYPE" = "plugin" ] && [ ! -f "$MAIN_FILE" ]; then
     sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
         -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
         -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
+        -e "s/\[VERSION\]/$VERSION/g" \
         -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
         -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
         -e "s/\[PLUGIN_CONSTANT\]/$PLUGIN_CONSTANT/g" \
@@ -105,11 +107,76 @@ if [ "$PROJECT_SUBTYPE" = "plugin" ] && [ ! -f "$MAIN_FILE" ]; then
     print_info "✓ Created $MAIN_FILE"
     
     # Create basic plugin directory structure
-    mkdir -p assets/css assets/js includes languages
+    mkdir -p assets/css assets/js includes languages src build
     print_info "✓ Created plugin directory structure"
 fi
 
-# Step 2: Setup Linting
+# Step 2: Setup .gitignore
+print_header "Setting up .gitignore"
+
+if [ ! -f ".gitignore" ]; then
+    cp "$SHARED_DIR/templates/.gitignore" .
+    print_info "✓ Created .gitignore with common exclusions"
+else
+    # Append pikari-dev-setup exclusions if not already present
+    if ! grep -q "pikari-dev-setup" .gitignore; then
+        echo "" >> .gitignore
+        echo "# Pikari Dev Setup" >> .gitignore
+        echo "pikari-dev-setup/" >> .gitignore
+        echo "pikari-dev-setup-*/" >> .gitignore
+        print_info "✓ Added pikari-dev-setup to existing .gitignore"
+    else
+        print_info "✓ .gitignore already exists with pikari-dev-setup exclusions"
+    fi
+fi
+
+# Step 3: Create README and CHANGELOG
+print_header "Creating Documentation Files"
+
+# Create README.md if it doesn't exist
+if [ ! -f "README.md" ]; then
+    # Get current date
+    CURRENT_DATE=$(date +%Y-%m-%d)
+    
+    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
+        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
+        -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
+        -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
+        -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
+        "$SHARED_DIR/templates/README.md" > README.md
+    
+    # Remove empty homepage line if no homepage
+    if [ -z "$PROJECT_HOMEPAGE" ]; then
+        sed -i.bak '/- Homepage: $/d' README.md && rm README.md.bak
+    fi
+    
+    print_info "✓ Created README.md"
+else
+    print_info "✓ README.md already exists"
+fi
+
+# Create CHANGELOG.md if it doesn't exist
+if [ ! -f "CHANGELOG.md" ]; then
+    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
+        -e "s/\[VERSION\]/$VERSION/g" \
+        -e "s/\[DATE\]/$CURRENT_DATE/g" \
+        -e "s/\[GITHUB_ORG\]/$GITHUB_ORG/g" \
+        -e "s/\[GITHUB_REPO\]/$GITHUB_REPO/g" \
+        "$SHARED_DIR/templates/CHANGELOG.md" > CHANGELOG.md
+    
+    # Remove GitHub links if no GitHub info
+    if [ -z "$GITHUB_ORG" ] || [ -z "$GITHUB_REPO" ]; then
+        sed -i.bak '/\[Unreleased\]:/d' CHANGELOG.md
+        sed -i.bak '/\[\[VERSION\]\]:/d' CHANGELOG.md
+        rm CHANGELOG.md.bak
+    fi
+    
+    print_info "✓ Created CHANGELOG.md"
+else
+    print_info "✓ CHANGELOG.md already exists"
+fi
+
+# Step 4: Setup Linting
 print_header "Setting up Linting"
 
 # Copy linting files
@@ -124,7 +191,7 @@ cp "$SCRIPT_DIR/vscode/settings.json" .vscode/
 
 print_info "✓ Linting configuration files copied"
 
-# Step 3: Ensure package.json exists
+# Step 5: Ensure package.json exists
 print_header "Setting up package.json"
 
 if [ ! -f "package.json" ]; then
@@ -137,6 +204,7 @@ if [ ! -f "package.json" ]; then
         -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
         -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
         -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
+        -e "s/\[VERSION\]/$VERSION/g" \
         "$SCRIPT_DIR/package-scripts/package.json" > package.json
     
     # Remove homepage field if empty
@@ -156,13 +224,13 @@ else
     PACKAGE_JSON_CREATED=false
 fi
 
-# Step 4: Setup Husky
+# Step 5: Setup Husky
 print_header "Setting up Husky Pre-commit Hooks"
 
 # Run shared Husky setup
 bash "$SHARED_DIR/husky/setup.sh" wordpress
 
-# Step 5: Setup GitHub Workflows
+# Step 6: Setup GitHub Workflows
 print_header "Setting up GitHub Workflows"
 
 mkdir -p .github/workflows
@@ -181,7 +249,7 @@ done
 
 print_info "✓ GitHub workflows created"
 
-# Step 6: Setup WordPress Playground
+# Step 7: Setup WordPress Playground
 print_header "Setting up WordPress Playground"
 
 if [ ! -d "_playground" ]; then
@@ -205,7 +273,7 @@ else
     print_warning "⚠ _playground directory already exists, skipping"
 fi
 
-# Step 7: Setup Release Scripts
+# Step 8: Setup Release Scripts
 print_header "Setting up Release Automation"
 
 if [ ! -d "bin" ]; then
@@ -217,7 +285,7 @@ else
     print_warning "⚠ bin directory already exists, skipping release script"
 fi
 
-# Step 8: Update package.json and composer.json
+# Step 9: Update package.json and composer.json
 print_header "Updating Configuration Files"
 
 # Update existing package.json if needed
@@ -257,6 +325,7 @@ if [ ! -f "composer.json" ]; then
             -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
             -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
             -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
+            -e "s/\[VERSION\]/$VERSION/g" \
             "$SCRIPT_DIR/package-scripts/composer.json" > composer.json
         
         # Remove homepage field if empty
@@ -294,7 +363,7 @@ elif command -v jq &> /dev/null; then
     fi
 fi
 
-# Step 9: Create CLAUDE.md
+# Step 10: Create CLAUDE.md
 print_header "Creating CLAUDE.md"
 
 # Ensure we clean up temp files even if the script fails
@@ -398,7 +467,7 @@ else
     print_info "✓ CLAUDE.md created"
 fi
 
-# Step 10: Install dependencies
+# Step 11: Install dependencies
 print_header "Installing Dependencies"
 
 if [ -f "package.json" ]; then
@@ -419,7 +488,7 @@ if [ -f "composer.json" ]; then
     fi
 fi
 
-# Step 11: Cleanup
+# Step 12: Cleanup
 print_header "Cleanup"
 
 # Get the actual setup folder name (handles downloaded zips with different names)

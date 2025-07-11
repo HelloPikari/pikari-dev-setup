@@ -1,6 +1,6 @@
 {
   "name": "[PLUGIN_SLUG]",
-  "version": "1.0.0",
+  "version": "[VERSION]",
   "description": "[PROJECT_DESCRIPTION]",
   "author": "[AUTHOR_NAME] <[AUTHOR_EMAIL]>",
   "homepage": "[PROJECT_HOMEPAGE]",

@@ -1,6 +1,7 @@
 {
   "name": "[AUTHOR_SLUG]/[PLUGIN_SLUG]",
   "description": "[PROJECT_DESCRIPTION]",
+  "version": "[VERSION]",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "authors": [
