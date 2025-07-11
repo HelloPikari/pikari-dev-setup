@@ -84,6 +84,18 @@ jobs:
         echo "tests/results/" >> .gitignore
         echo ".phpunit.result.cache" >> .gitignore
         echo ".husky/" >> .gitignore
+        echo "bin/" >> .gitignore
+        echo "*.sh" >> .gitignore
+        echo ".github/" >> .gitignore
+        echo ".editorconfig" >> .gitignore
+        echo ".gitattributes" >> .gitignore
+        echo "phpcs.xml" >> .gitignore
+        echo ".eslintrc*" >> .gitignore
+        echo ".prettierrc*" >> .gitignore
+        echo ".prettierignore" >> .gitignore
+        echo ".stylelintrc*" >> .gitignore
+        echo "composer.lock" >> .gitignore
+        echo "package-lock.json" >> .gitignore
         
         # Add all files except those in .gitignore
         git add -A

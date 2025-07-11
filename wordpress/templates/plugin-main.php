@@ -15,7 +15,7 @@
  */
 
 // Exit if accessed directly.
-if ( \! defined( 'ABSPATH' ) ) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -75,4 +75,3 @@ function [PLUGIN_FUNCTION_PREFIX]_deactivate() {
     flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, '[PLUGIN_FUNCTION_PREFIX]_deactivate' );
-
