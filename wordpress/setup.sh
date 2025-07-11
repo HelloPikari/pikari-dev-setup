@@ -297,6 +297,9 @@ fi
 # Step 9: Create CLAUDE.md
 print_header "Creating CLAUDE.md"
 
+# Ensure we clean up temp files even if the script fails
+trap 'rm -f CLAUDE.md.tmp CLAUDE.md.working CLAUDE.md.working.bak CLAUDE.md.tmp2' EXIT
+
 # Determine which sections to include based on project type
 if [ -f "CLAUDE.md" ]; then
     read -p "CLAUDE.md already exists. Overwrite? (y/N) " -n 1 -r
@@ -316,32 +319,37 @@ if [ -f "CLAUDE.md" ]; then
             -e "s/\[WP_VERSION\]/6.0/g" \
             -e "s/\[PHP_VERSION\]/8.2/g" CLAUDE.md.tmp && rm CLAUDE.md.tmp.bak
         
-        # Read and insert sections
-        wordpress_standards=$(cat "$SCRIPT_DIR/claude/sections/wordpress-standards.md")
-        wordpress_security=$(cat "$SCRIPT_DIR/claude/sections/wordpress-security.md")
-        general_standards=$(cat "$SHARED_DIR/claude/sections/coding-standards.md")
-        general_security=$(cat "$SHARED_DIR/claude/sections/security-practices.md")
-        
-        # Use awk for multi-line replacements, but clean up properly
+        # Use a more robust method to insert sections
+        # Create a working copy
         cp CLAUDE.md.tmp CLAUDE.md.working
         
-        awk -v ws="$wordpress_standards" '{ gsub(/\[WORDPRESS_STANDARDS\]/, ws); print }' CLAUDE.md.working > CLAUDE.md.tmp
-        cp CLAUDE.md.tmp CLAUDE.md.working
+        # Process each placeholder one by one using sed with file input
+        if [ -f "$SCRIPT_DIR/claude/sections/wordpress-standards.md" ]; then
+            sed -i.bak '/\[WORDPRESS_STANDARDS\]/r '"$SCRIPT_DIR/claude/sections/wordpress-standards.md" CLAUDE.md.working
+            sed -i.bak '/\[WORDPRESS_STANDARDS\]/d' CLAUDE.md.working
+        fi
         
-        awk -v ws="$wordpress_security" '{ gsub(/\[WORDPRESS_SECURITY\]/, ws); print }' CLAUDE.md.working > CLAUDE.md.tmp
-        cp CLAUDE.md.tmp CLAUDE.md.working
+        if [ -f "$SCRIPT_DIR/claude/sections/wordpress-security.md" ]; then
+            sed -i.bak '/\[WORDPRESS_SECURITY\]/r '"$SCRIPT_DIR/claude/sections/wordpress-security.md" CLAUDE.md.working
+            sed -i.bak '/\[WORDPRESS_SECURITY\]/d' CLAUDE.md.working
+        fi
         
-        awk -v gs="$general_standards" '{ gsub(/\[GENERAL_STANDARDS\]/, gs); print }' CLAUDE.md.working > CLAUDE.md.tmp
-        cp CLAUDE.md.tmp CLAUDE.md.working
+        if [ -f "$SHARED_DIR/claude/sections/coding-standards.md" ]; then
+            sed -i.bak '/\[GENERAL_STANDARDS\]/r '"$SHARED_DIR/claude/sections/coding-standards.md" CLAUDE.md.working
+            sed -i.bak '/\[GENERAL_STANDARDS\]/d' CLAUDE.md.working
+        fi
         
-        awk -v gs="$general_security" '{ gsub(/\[GENERAL_SECURITY\]/, gs); print }' CLAUDE.md.working > CLAUDE.md.tmp
+        if [ -f "$SHARED_DIR/claude/sections/security-practices.md" ]; then
+            sed -i.bak '/\[GENERAL_SECURITY\]/r '"$SHARED_DIR/claude/sections/security-practices.md" CLAUDE.md.working
+            sed -i.bak '/\[GENERAL_SECURITY\]/d' CLAUDE.md.working
+        fi
         
         # Final replacements
         sed -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
-            -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.tmp > CLAUDE.md
+            -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.working > CLAUDE.md
         
         # Clean up ALL temporary files
-        rm -f CLAUDE.md.tmp CLAUDE.md.tmp2 CLAUDE.md.working
+        rm -f CLAUDE.md.tmp CLAUDE.md.working CLAUDE.md.working.bak
         print_info "✓ CLAUDE.md created"
     fi
 else
@@ -357,59 +365,36 @@ else
         -e "s/\[WP_VERSION\]/6.0/g" \
         -e "s/\[PHP_VERSION\]/8.2/g" CLAUDE.md && rm CLAUDE.md.bak
     
-    # Read sections
-    wordpress_standards=$(cat "$SCRIPT_DIR/claude/sections/wordpress-standards.md")
-    wordpress_security=$(cat "$SCRIPT_DIR/claude/sections/wordpress-security.md")
-    general_standards=$(cat "$SHARED_DIR/claude/sections/coding-standards.md")
-    general_security=$(cat "$SHARED_DIR/claude/sections/security-practices.md")
-    
     # Create temporary file for processing
-    cp CLAUDE.md CLAUDE.md.tmp
+    cp CLAUDE.md CLAUDE.md.working
     
-    # Use awk for multi-line replacements, but clean up properly
-    cp CLAUDE.md.tmp CLAUDE.md.working
+    # Process each placeholder one by one using sed with file input
+    if [ -f "$SCRIPT_DIR/claude/sections/wordpress-standards.md" ]; then
+        sed -i.bak '/\[WORDPRESS_STANDARDS\]/r '"$SCRIPT_DIR/claude/sections/wordpress-standards.md" CLAUDE.md.working
+        sed -i.bak '/\[WORDPRESS_STANDARDS\]/d' CLAUDE.md.working
+    fi
     
-    awk -v content="$wordpress_standards" '
-        /\[WORDPRESS_STANDARDS\]/ {
-            print content
-            next
-        }
-        { print }
-    ' CLAUDE.md.working > CLAUDE.md.tmp
-    cp CLAUDE.md.tmp CLAUDE.md.working
+    if [ -f "$SCRIPT_DIR/claude/sections/wordpress-security.md" ]; then
+        sed -i.bak '/\[WORDPRESS_SECURITY\]/r '"$SCRIPT_DIR/claude/sections/wordpress-security.md" CLAUDE.md.working
+        sed -i.bak '/\[WORDPRESS_SECURITY\]/d' CLAUDE.md.working
+    fi
     
-    awk -v content="$wordpress_security" '
-        /\[WORDPRESS_SECURITY\]/ {
-            print content
-            next
-        }
-        { print }
-    ' CLAUDE.md.working > CLAUDE.md.tmp
-    cp CLAUDE.md.tmp CLAUDE.md.working
+    if [ -f "$SHARED_DIR/claude/sections/coding-standards.md" ]; then
+        sed -i.bak '/\[GENERAL_STANDARDS\]/r '"$SHARED_DIR/claude/sections/coding-standards.md" CLAUDE.md.working
+        sed -i.bak '/\[GENERAL_STANDARDS\]/d' CLAUDE.md.working
+    fi
     
-    awk -v content="$general_standards" '
-        /\[GENERAL_STANDARDS\]/ {
-            print content
-            next
-        }
-        { print }
-    ' CLAUDE.md.working > CLAUDE.md.tmp
-    cp CLAUDE.md.tmp CLAUDE.md.working
+    if [ -f "$SHARED_DIR/claude/sections/security-practices.md" ]; then
+        sed -i.bak '/\[GENERAL_SECURITY\]/r '"$SHARED_DIR/claude/sections/security-practices.md" CLAUDE.md.working
+        sed -i.bak '/\[GENERAL_SECURITY\]/d' CLAUDE.md.working
+    fi
     
-    awk -v content="$general_security" '
-        /\[GENERAL_SECURITY\]/ {
-            print content
-            next
-        }
-        { print }
-    ' CLAUDE.md.working > CLAUDE.md.tmp
-    
-    # Final replacements and cleanup
+    # Final replacements
     sed -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
-        -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.tmp > CLAUDE.md
+        -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.working > CLAUDE.md
     
     # Clean up ALL temporary files
-    rm -f CLAUDE.md.tmp CLAUDE.md.tmp2 CLAUDE.md.working
+    rm -f CLAUDE.md.working CLAUDE.md.working.bak
     print_info "✓ CLAUDE.md created"
 fi
 
