@@ -10,6 +10,8 @@
     "[PROJECT_SUBTYPE]"
   ],
   "scripts": {
+    "start": "wp-scripts start",
+    "build": "wp-scripts build",
     "lint:all": "npm run lint:js && npm run lint:css && npm run lint:php",
     "lint:fix": "npm run lint:js:fix && npm run lint:css:fix && npm run lint:php:fix",
     "lint:js": "wp-scripts lint-js src",
@@ -18,18 +20,20 @@
     "lint:css:fix": "wp-scripts lint-style src/**/*.{css,scss} --fix",
     "lint:php": "composer lint",
     "lint:php:fix": "composer lint:fix",
-    "start": "wp-scripts start",
-    "build": "wp-scripts build",
-    "test": "wp-scripts test-unit-js",
-    "test:watch": "wp-scripts test-unit-js --watch",
-    "test:coverage": "wp-scripts test-unit-js --coverage",
+    "lint:md:docs": "wp-scripts lint-md-docs",
+    "lint:pkg-json": "wp-scripts lint-pkg-json",
+    "test:e2e": "wp-scripts test-e2e",
+    "test:unit": "wp-scripts test-unit-js",
+    "packages-update": "wp-scripts packages-update",
     "plugin-zip": "wp-scripts plugin-zip",
     "playground": "npx @wp-now/wp-now start --blueprint=wordpress/playground/blueprint-local.json",
     "playground:demo": "npx @wp-now/wp-now start --blueprint=wordpress/playground/blueprint.json",
     "prepare": "husky || true"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^28.0.0"
+    "@wordpress/scripts": "latest",
+    "husky": "latest",
+    "lint-staged": "latest"
   },
   "lint-staged": {
     "*.php": [

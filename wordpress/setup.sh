@@ -107,6 +107,16 @@ if [ ! -f "package.json" ]; then
         -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
         "$SCRIPT_DIR/package-scripts/package.json" > package.json
     
+    # Remove homepage field if empty
+    if [ -z "$PROJECT_HOMEPAGE" ]; then
+        if command -v jq &> /dev/null; then
+            jq 'del(.homepage)' package.json > package.json.tmp && mv package.json.tmp package.json
+        else
+            # Fallback: remove the line with sed
+            sed -i.bak '/"homepage": "",/d' package.json && rm package.json.bak
+        fi
+    fi
+    
     print_info "✓ package.json created"
     PACKAGE_JSON_CREATED=true
 else
@@ -216,6 +226,16 @@ if [ ! -f "composer.json" ]; then
             -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
             -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
             "$SCRIPT_DIR/package-scripts/composer.json" > composer.json
+        
+        # Remove homepage field if empty
+        if [ -z "$PROJECT_HOMEPAGE" ]; then
+            if command -v jq &> /dev/null; then
+                jq 'del(.homepage)' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+            else
+                # Fallback: remove the line with sed (less reliable but works without jq)
+                sed -i.bak '/"homepage": "",/d' composer.json && rm composer.json.bak
+            fi
+        fi
         
         # Set type based on project subtype
         if [ "$PROJECT_SUBTYPE" = "theme" ]; then
