@@ -163,8 +163,9 @@ while [ $WAIT_TIME -lt $MAX_WAIT ]; do
     # Fetch without creating local branch to avoid conflicts
     git fetch origin >/dev/null 2>&1 || true
     
-    # Check if the build branch contains our commit
-    if git branch -r --contains $COMMIT_SHA | grep -q "origin/build"; then
+    # Check if the latest commit message on build branch contains our commit SHA
+    BUILD_COMMIT_MSG=$(git log origin/build -1 --pretty=%B 2>/dev/null || echo "")
+    if echo "$BUILD_COMMIT_MSG" | grep -q "Built from commit: $COMMIT_SHA"; then
         print_info "Build branch has been updated successfully!"
         break
     fi
