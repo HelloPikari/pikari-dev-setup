@@ -1,8 +1,13 @@
 #!/bin/bash
 
 # WordPress Plugin/Theme Release Script
-# This script automates the release process, ensuring tags are created from the build branch
-# which contains the compiled assets needed for Composer installations.
+# This script automates the release process:
+# 1. Updates version numbers in main branch and pushes
+# 2. Waits for build branch workflow to create production build with ZIP
+# 3. Creates tag from build branch (which includes the plugin ZIP)
+# 4. GitHub Actions release job publishes the ZIP as a GitHub release
+#
+# The build branch contains only production files and can be installed via Composer.
 
 set -e  # Exit on error
 
@@ -201,9 +206,9 @@ echo ""
 print_info "🎉 Release v$NEW_VERSION created successfully!"
 print_info ""
 print_info "The GitHub Actions workflow will now:"
-print_info "  1. Run tests"
-print_info "  2. Create a GitHub release with changelog"
-print_info "  3. Attach the plugin ZIP file"
+print_info "  1. Verify the plugin ZIP exists in the build branch"
+print_info "  2. Extract release notes from CHANGELOG.md"
+print_info "  3. Create a GitHub release with the ZIP file"
 print_info ""
 print_info "Monitor the release progress at:"
 print_info "https://github.com/$(git config --get remote.origin.url | sed 's/.*://;s/\.git$//')/actions"

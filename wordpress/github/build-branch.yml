@@ -2,7 +2,7 @@ name: Update Build Branch
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
       - '.github/workflows/build-branch.yml'
       - '**.md'
@@ -13,114 +13,136 @@ permissions:
 jobs:
   update-build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout main branch
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-    
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        tools: composer:v2
-        coverage: none
-    
-    - name: Install npm dependencies
-      run: npm ci
-    
-    - name: Install Composer dependencies
-      run: |
-        # For the build branch, we don't need composer dependencies
-        # The autoloader is only used for development
-        echo "Skipping composer install for build branch"
-    
-    - name: Build plugin
-      run: npm run build
-    
-    - name: Configure git
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-    
-    - name: Create and push to build branch
-      run: |
-        # Save current commit info
-        COMMIT_MSG=$(git log -1 --pretty=%B)
-        COMMIT_AUTHOR_NAME=$(git log -1 --pretty="%an")
-        COMMIT_AUTHOR_EMAIL=$(git log -1 --pretty="%ae")
-        COMMIT_SHA=$(git rev-parse HEAD)
-        
-        # Check if build branch exists on remote
-        if git ls-remote --heads origin build | grep -q build; then
-          echo "Build branch exists, fetching it"
-          git fetch origin build:build
-        else
-          echo "Build branch doesn't exist, will create it"
-        fi
-        
-        # Create or checkout build branch
-        git checkout -B build
-        
-        # Remove development files and folders that shouldn't be in the build
-        rm -rf .github/
-        rm -rf .husky/
-        rm -rf bin/
-        rm -rf tests/
-        rm -rf node_modules/
-        rm -rf vendor/
-        rm -f .editorconfig
-        rm -f .gitattributes
-        rm -f .gitignore
-        rm -f phpcs.xml
-        rm -f .eslintrc*
-        rm -f .prettierrc*
-        rm -f .prettierignore
-        rm -f .stylelintrc*
-        rm -f composer.lock
-        rm -f package-lock.json
-        rm -f *.sh
-        rm -f .env .env.*
-        rm -f *.log
-        rm -f .DS_Store
-        rm -f *.swp *.swo
-        rm -f .phpunit.result.cache
-        
-        # Create a minimal .gitignore for the build branch
-        echo "node_modules/" > .gitignore
-        echo "vendor/" >> .gitignore
-        echo ".DS_Store" >> .gitignore
-        echo "*.log" >> .gitignore
-        
-        # Add all remaining files
-        git add -A
-        
-        # Check if there are changes
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          # Commit with original author info (skip hooks)
-          git -c "user.name=$COMMIT_AUTHOR_NAME" -c "user.email=$COMMIT_AUTHOR_EMAIL" \
-            commit --no-verify -m "$COMMIT_MSG" -m "Built from commit: $COMMIT_SHA"
-        fi
-        
-        # Force push to build branch
-        git push --force-with-lease origin build
-    
-    - name: Add build branch protection comment
-      if: success()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const commit = context.payload.head_commit;
-          if (commit) {
-            const message = `✅ Build branch updated with compiled assets from commit ${commit.id.substring(0, 7)}`;
-            console.log(message);
-          }
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Composer dependencies
+        run: |
+          # For the build branch, we don't need composer dependencies
+          # The autoloader is only used for development
+          echo "Skipping composer install for build branch"
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Create plugin ZIP
+        run: |
+          # Get plugin slug from directory name
+          PLUGIN_SLUG=$(basename "$PWD")
+          npm run plugin-zip
+          echo "Created ${PLUGIN_SLUG}.zip"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push to build branch
+        run: |
+          # Save current commit info
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          COMMIT_AUTHOR_NAME=$(git log -1 --pretty="%an")
+          COMMIT_AUTHOR_EMAIL=$(git log -1 --pretty="%ae")
+          COMMIT_SHA=$(git rev-parse HEAD)
+
+          # Check if build branch exists on remote
+          if git ls-remote --heads origin build | grep -q build; then
+            echo "Build branch exists, fetching it"
+            git fetch origin build:build
+          else
+            echo "Build branch doesn't exist, will create it"
+          fi
+
+          # Create or checkout build branch
+          git checkout -B build
+
+          # Move the ZIP file to preserve it
+          PLUGIN_SLUG=$(basename "$PWD")
+          if [ -f "${PLUGIN_SLUG}.zip" ]; then
+            mv "${PLUGIN_SLUG}.zip" "../${PLUGIN_SLUG}.zip.tmp"
+          fi
+
+          # Remove development files and folders that shouldn't be in the build
+          rm -rf .github/
+          rm -rf .husky/
+          rm -rf bin/
+          rm -rf tests/
+          rm -rf node_modules/
+          rm -rf vendor/
+          rm -rf src/
+          rm -rf .claude/
+          rm -rf .vscode/
+          rm -f .editorconfig
+          rm -f .gitattributes
+          rm -f .gitignore
+          rm -f phpcs.xml
+          rm -f .eslintrc*
+          rm -f .prettierrc*
+          rm -f .prettierignore
+          rm -f .stylelintrc*
+          rm -f composer.lock
+          rm -f package-lock.json
+          rm -f *.sh
+          rm -f .env .env.*
+          rm -f *.log
+          rm -f .DS_Store
+          rm -f *.swp *.swo
+          rm -f .phpunit.result.cache
+
+          # Create a minimal .gitignore for the build branch
+          echo "node_modules/" > .gitignore
+          echo "vendor/" >> .gitignore
+          echo ".DS_Store" >> .gitignore
+          echo "*.log" >> .gitignore
+
+          # Restore the ZIP file
+          if [ -f "../${PLUGIN_SLUG}.zip.tmp" ]; then
+            mv "../${PLUGIN_SLUG}.zip.tmp" "${PLUGIN_SLUG}.zip"
+            echo "✓ Restored ${PLUGIN_SLUG}.zip"
+          fi
+
+          # Add all remaining files
+          git add -A
+
+          # Check if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            # Commit with original author info (skip hooks)
+            git -c "user.name=$COMMIT_AUTHOR_NAME" -c "user.email=$COMMIT_AUTHOR_EMAIL" \
+              commit --no-verify -m "$COMMIT_MSG" -m "Built from commit: $COMMIT_SHA"
+          fi
+
+          # Force push to build branch
+          git push --force-with-lease origin build
+
+      - name: Add build branch protection comment
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commit = context.payload.head_commit;
+            if (commit) {
+              const message = `✅ Build branch updated with compiled assets from commit ${commit.id.substring(0, 7)}`;
+              console.log(message);
+            }
