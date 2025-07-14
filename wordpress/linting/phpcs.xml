@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Pikari Gutenberg Modals">
-  <description>Custom coding standards for the Pikari Gutenberg Modals plugin. Based on WordPress Coding Standards, but uses spaces for indentation.</description>
+<ruleset name="Pikari Gutenberg plugin coding standards">
+  <description>Custom coding standards for the Pikari Gutenberg Plugins. Based on WordPress Coding Standards, but uses spaces for indentation.</description>
 
   <!-- Scan only this plugin's PHP files -->
   <file>./</file>
@@ -10,45 +10,45 @@
   <rule ref="WordPress">
     <!-- Override WordPress's tab requirement to use spaces -->
     <exclude name="Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed"/>
-    
+
     <!-- Allow PSR-4 autoloading structure -->
     <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
     <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
-    
+
     <!-- Allow short array syntax [] -->
     <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
-    
+
     <!-- Disable some overly strict formatting rules -->
     <exclude name="PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket"/>
     <exclude name="PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket"/>
     <exclude name="NormalizedArrays.Arrays.ArrayBraceSpacing"/>
     <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine"/>
     <exclude name="Generic.Classes.OpeningBraceSameLine.BraceOnNewLine"/>
-    
+
     <!-- Allow missing class comments for now -->
     <exclude name="Squiz.Commenting.ClassComment.Missing"/>
     <exclude name="Squiz.Commenting.FileComment.Missing"/>
     <exclude name="Squiz.Commenting.FunctionComment.Missing"/>
-    
+
     <!-- More lenient inline comment rules -->
     <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
     <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop"/>
-    
+
     <!-- Disable deprecated sniff warning -->
     <exclude name="Generic.Functions.CallTimePassByReference"/>
-    
+
     <!-- Allow non-Yoda conditions -->
     <exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
-    
+
     <!-- Allow short ternary -->
     <exclude name="Universal.Operators.DisallowShortTernary"/>
-    
+
     <!-- Allow global variable override for $post -->
     <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/>
-    
+
     <!-- Disable overly strict boolean operator precedence -->
     <exclude name="Generic.CodeAnalysis.RequireExplicitBooleanOperatorPrecedence"/>
-    
+
     <!-- Allow backslash in type hints -->
     <exclude name="Squiz.Commenting.FunctionComment.IncorrectTypeHint"/>
   </rule>
@@ -61,7 +61,7 @@
       <property name="tabIndent" value="false"/>
     </properties>
   </rule>
-  
+
   <!-- Disallow tabs -->
   <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
 

@@ -27,8 +27,8 @@
     "test:unit": "wp-scripts test-unit-js",
     "packages-update": "wp-scripts packages-update",
     "plugin-zip": "wp-scripts plugin-zip",
-    "playground": "npx @wp-now/wp-now start --blueprint=wordpress/playground/blueprint-local.json",
-    "playground:demo": "npx @wp-now/wp-now start --blueprint=wordpress/playground/blueprint.json",
+    "playground": "npx @wp-now/wp-now start --blueprint=_playground/blueprint-local.json",
+    "playground:demo": "npx @wp-now/wp-now start --blueprint=_playground/blueprint.json",
     "prepare": "husky || true"
   },
   "devDependencies": {

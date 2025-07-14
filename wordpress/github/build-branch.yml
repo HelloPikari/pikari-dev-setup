@@ -69,35 +69,37 @@ jobs:
         # Create or checkout build branch
         git checkout -B build
         
-        # Create a custom .gitignore for the build branch
+        # Remove development files and folders that shouldn't be in the build
+        rm -rf .github/
+        rm -rf .husky/
+        rm -rf bin/
+        rm -rf tests/
+        rm -rf node_modules/
+        rm -rf vendor/
+        rm -f .editorconfig
+        rm -f .gitattributes
+        rm -f .gitignore
+        rm -f phpcs.xml
+        rm -f .eslintrc*
+        rm -f .prettierrc*
+        rm -f .prettierignore
+        rm -f .stylelintrc*
+        rm -f composer.lock
+        rm -f package-lock.json
+        rm -f *.sh
+        rm -f .env .env.*
+        rm -f *.log
+        rm -f .DS_Store
+        rm -f *.swp *.swo
+        rm -f .phpunit.result.cache
+        
+        # Create a minimal .gitignore for the build branch
         echo "node_modules/" > .gitignore
         echo "vendor/" >> .gitignore
         echo ".DS_Store" >> .gitignore
         echo "*.log" >> .gitignore
-        echo ".env" >> .gitignore
-        echo ".env.*" >> .gitignore
-        echo ".vscode/" >> .gitignore
-        echo ".idea/" >> .gitignore
-        echo "*.swp" >> .gitignore
-        echo "*.swo" >> .gitignore
-        echo "tests/coverage/" >> .gitignore
-        echo "tests/results/" >> .gitignore
-        echo ".phpunit.result.cache" >> .gitignore
-        echo ".husky/" >> .gitignore
-        echo "bin/" >> .gitignore
-        echo "*.sh" >> .gitignore
-        echo ".github/" >> .gitignore
-        echo ".editorconfig" >> .gitignore
-        echo ".gitattributes" >> .gitignore
-        echo "phpcs.xml" >> .gitignore
-        echo ".eslintrc*" >> .gitignore
-        echo ".prettierrc*" >> .gitignore
-        echo ".prettierignore" >> .gitignore
-        echo ".stylelintrc*" >> .gitignore
-        echo "composer.lock" >> .gitignore
-        echo "package-lock.json" >> .gitignore
         
-        # Add all files except those in .gitignore
+        # Add all remaining files
         git add -A
         
         # Check if there are changes
