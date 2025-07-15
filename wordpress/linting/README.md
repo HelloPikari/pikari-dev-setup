@@ -138,6 +138,82 @@ To add custom rules or exclude patterns, modify `phpcs.xml`:
 </rule>
 ```
 
+## Block Version Management (Gutenberg Blocks)
+
+When developing WordPress Gutenberg blocks, you'll encounter version fields in `block.json`. Here's how to manage them properly:
+
+### Understanding Version Fields
+
+**`apiVersion`**: The Block API version your block uses (currently 3 as of WordPress 6.3)
+- Always use the latest version unless you have specific compatibility requirements
+- All blocks must use apiVersion 3+ to enable the editor iframe feature
+
+**`version`**: Your individual block's version number
+- Independent from your plugin version
+- Only update when the block itself changes
+- Optional field (WordPress uses its own version for cache busting if omitted)
+
+### Best Practice: Independent Versioning
+
+**Key Principle**: The block version should NOT automatically match your plugin version.
+
+Example scenario:
+```json
+// block.json
+{
+  "apiVersion": 3,
+  "name": "my-plugin/my-block",
+  "version": "1.0.0",  // Block version
+  // ...
+}
+```
+
+```php
+// my-plugin.php
+/*
+ * Plugin Name: My Plugin
+ * Version: 2.5.0     // Plugin version (different!)
+ */
+```
+
+### When to Update Block Versions
+
+✅ **Update block version when**:
+- Block JavaScript code changes
+- Block styles are modified
+- Block attributes are added/removed
+- Block edit/save functions change
+- Block supports or features are modified
+
+❌ **Don't update block version when**:
+- Only PHP files are updated
+- Unrelated plugin bugs are fixed
+- Documentation is updated
+- Plugin features outside the block change
+
+### Version Management with Pikari
+
+**Important**: Pikari's release script (`bin/release.sh`) does NOT automatically update block.json versions. This is intentional and follows best practices.
+
+To manage block versions:
+1. **Manual Updates**: Update block.json version manually when block changes
+2. **Automated Detection**: Consider adding a build step that detects changes in block source files
+3. **Separate Tracking**: Maintain a changelog specifically for block changes
+
+### Example Versioning Strategy
+
+1. **Initial Release**: Both plugin and block start at 1.0.0
+2. **PHP Bug Fix**: Plugin → 1.0.1, Block stays 1.0.0
+3. **Block Enhancement**: Plugin → 1.1.0, Block → 1.1.0
+4. **Plugin Feature**: Plugin → 1.2.0, Block stays 1.1.0
+5. **Block Style Update**: Plugin → 1.2.1, Block → 1.1.1
+
+This approach ensures:
+- Clear tracking of what changed
+- Accurate cache invalidation for block assets
+- Better debugging when issues arise
+- Compliance with WordPress block best practices
+
 ## Troubleshooting
 
 ### ESLint not finding WordPress config
