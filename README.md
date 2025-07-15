@@ -23,25 +23,25 @@ git clone https://github.com/HelloPikari/pikari-dev-setup.git
   - Stylelint for CSS/SCSS
   - PHPCS with WordPress coding standards
   - Prettier for consistent formatting
-  
+
 - **Pre-commit Hooks**
   - Husky + lint-staged
   - Automatic linting on commit
-  
+
 - **GitHub Workflows**
   - CI workflow for tests and linting
   - Build branch automation
   - Release automation
-  
+
 - **WordPress Playground**
   - Local development blueprint
   - Demo blueprint for GitHub
-  
+
 - **Release Automation**
   - Automated version updates
   - Build branch tagging
   - GitHub release creation
-  
+
 - **CLAUDE.md**
   - AI assistant context
   - Project-specific guidelines
@@ -49,7 +49,7 @@ git clone https://github.com/HelloPikari/pikari-dev-setup.git
 
 ## 🏗️ Project Structure
 
-```
+```text
 pikari-dev-setup/
 ├── setup.sh              # Main entry point
 ├── shared/               # Shared components
@@ -70,6 +70,7 @@ pikari-dev-setup/
 ### Initial Setup
 
 1. From your project root, run the setup script:
+
    ```bash
    ./pikari-dev-setup/setup.sh
    ```

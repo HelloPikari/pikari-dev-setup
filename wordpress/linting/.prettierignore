@@ -15,3 +15,6 @@ vendor/
 node_modules/
 *.min.js
 *.min.css
+
+# Don't ignore markdown files - Prettier should format these
+# *.md is handled by Prettier

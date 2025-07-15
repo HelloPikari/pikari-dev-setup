@@ -12,6 +12,6 @@
     "unit-no-unknown": null,
     "value-keyword-case": null,
     "function-no-unknown": null,
-    "custom-property-empty-line-before": null
+    "rule-empty-line-before": "never"
   }
 }

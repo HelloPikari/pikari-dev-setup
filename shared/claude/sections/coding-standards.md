@@ -3,9 +3,11 @@
 **IMPORTANT**: All generated code MUST follow the linting configurations defined in this project:
 
 - **PHP**: Use 4 spaces for indentation (NO TABS) - see phpcs.xml
-- **JavaScript**: Follow ESLint + Prettier configuration
-- **CSS/SCSS**: Follow Stylelint configuration
+- **JavaScript**: Follow ESLint configuration (ESLint handles all JS formatting)
+- **CSS/SCSS**: Follow Stylelint configuration (Prettier formats CSS/SCSS)
 - Generated code must pass all linting checks without modifications
+
+Note: Prettier is configured to ignore JavaScript files. ESLint handles all JavaScript formatting to ensure WordPress coding standards are followed.
 
 ### General Principles
 - Write clean, readable, and maintainable code

@@ -58,6 +58,7 @@ npm test
 ## Author
 
 **[AUTHOR_NAME]**
+
 - Email: [AUTHOR_EMAIL]
 - Homepage: [PROJECT_HOMEPAGE]
 
