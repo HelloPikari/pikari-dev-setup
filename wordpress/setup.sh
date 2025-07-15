@@ -189,6 +189,7 @@ cp "$SCRIPT_DIR/linting/phpcs.xml" .
 # Copy VS Code settings
 mkdir -p .vscode
 cp "$SCRIPT_DIR/vscode/settings.json" .vscode/
+cp "$SCRIPT_DIR/vscode/extensions.json" .vscode/
 
 print_info "✓ Linting configuration files copied"
 
