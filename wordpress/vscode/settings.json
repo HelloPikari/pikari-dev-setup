@@ -69,10 +69,5 @@
     ".eslintrc.cjs": "javascript",
     ".prettierrc": "json",
     ".stylelintrc.json": "json"
-  },
-
-  // Intelephense Settings
-  "intelephense.environment.phpVersion": "8.2",
-  "intelephense.stubs": ["wordpress"],
-  "intelephense.files.maxSize": 3000000
+  }
 }
