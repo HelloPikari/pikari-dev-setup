@@ -89,14 +89,14 @@ if [ "$PROJECT_SUBTYPE" = "plugin" ] && [ ! -f "$MAIN_FILE" ]; then
     PLUGIN_FUNCTION_PREFIX=$(echo "$PLUGIN_SLUG" | tr '-' '_')
     
     # Create plugin file from template
-    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-        -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
-        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
-        -e "s/\[VERSION\]/$VERSION/g" \
-        -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
-        -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-        -e "s/\[PLUGIN_CONSTANT\]/$PLUGIN_CONSTANT/g" \
-        -e "s/\[PLUGIN_FUNCTION_PREFIX\]/$PLUGIN_FUNCTION_PREFIX/g" \
+    sed -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[PROJECT_HOMEPAGE\]|$PROJECT_HOMEPAGE|g" \
+        -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+        -e "s|\[VERSION\]|$VERSION|g" \
+        -e "s|\[AUTHOR_NAME\]|$AUTHOR_NAME|g" \
+        -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+        -e "s|\[PLUGIN_CONSTANT\]|$PLUGIN_CONSTANT|g" \
+        -e "s|\[PLUGIN_FUNCTION_PREFIX\]|$PLUGIN_FUNCTION_PREFIX|g" \
         "$SCRIPT_DIR/templates/plugin-main.php" > "$MAIN_FILE"
     
     # Remove empty Plugin URI and Author URI if no homepage
@@ -138,11 +138,11 @@ if [ ! -f "README.md" ]; then
     # Get current date
     CURRENT_DATE=$(date +%Y-%m-%d)
     
-    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
-        -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
-        -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
-        -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
+    sed -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+        -e "s|\[AUTHOR_NAME\]|$AUTHOR_NAME|g" \
+        -e "s|\[AUTHOR_EMAIL\]|$AUTHOR_EMAIL|g" \
+        -e "s|\[PROJECT_HOMEPAGE\]|$PROJECT_HOMEPAGE|g" \
         "$SHARED_DIR/templates/README.md" > README.md
     
     # Remove empty homepage line if no homepage
@@ -157,11 +157,11 @@ fi
 
 # Create CHANGELOG.md if it doesn't exist
 if [ ! -f "CHANGELOG.md" ]; then
-    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-        -e "s/\[VERSION\]/$VERSION/g" \
-        -e "s/\[DATE\]/$CURRENT_DATE/g" \
-        -e "s/\[GITHUB_ORG\]/$GITHUB_ORG/g" \
-        -e "s/\[GITHUB_REPO\]/$GITHUB_REPO/g" \
+    sed -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[VERSION\]|$VERSION|g" \
+        -e "s|\[DATE\]|$CURRENT_DATE|g" \
+        -e "s|\[GITHUB_ORG\]|$GITHUB_ORG|g" \
+        -e "s|\[GITHUB_REPO\]|$GITHUB_REPO|g" \
         "$SHARED_DIR/templates/CHANGELOG.md" > CHANGELOG.md
     
     # Remove GitHub links if no GitHub info
@@ -199,14 +199,14 @@ print_header "Setting up package.json"
 if [ ! -f "package.json" ]; then
     print_info "Creating package.json from template..."
     
-    sed -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-        -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
-        -e "s/\[PROJECT_SUBTYPE\]/$PROJECT_SUBTYPE/g" \
-        -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
-        -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
-        -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
-        -e "s/\[VERSION\]/$VERSION/g" \
+    sed -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+        -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+        -e "s|\[PROJECT_SUBTYPE\]|$PROJECT_SUBTYPE|g" \
+        -e "s|\[AUTHOR_NAME\]|$AUTHOR_NAME|g" \
+        -e "s|\[AUTHOR_EMAIL\]|$AUTHOR_EMAIL|g" \
+        -e "s|\[PROJECT_HOMEPAGE\]|$PROJECT_HOMEPAGE|g" \
+        -e "s|\[VERSION\]|$VERSION|g" \
         "$SCRIPT_DIR/package-scripts/package.json" > package.json
     
     # Remove homepage field if empty
@@ -243,9 +243,9 @@ for workflow in "$SCRIPT_DIR/github"/*.yml; do
     target=".github/workflows/$filename"
     
     # Copy and replace placeholders
-    sed -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-        -e "s/\[MAIN_FILE\]/$MAIN_FILE/g" \
-        -e "s/\[MAIN_JS_FILE\]/$(ls build/*.js 2>/dev/null | head -1 | xargs basename || echo 'index.js')/g" \
+    sed -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+        -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
+        -e "s|\[MAIN_JS_FILE\]|$(ls build/*.js 2>/dev/null | head -1 | xargs basename || echo 'index.js')|g" \
         "$workflow" > "$target"
 done
 
@@ -258,16 +258,16 @@ if [ ! -d "_playground" ]; then
     mkdir -p _playground
     
     # Copy and customize playground configs
-    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-        -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-        -e "s/\[MAIN_FILE\]/$MAIN_FILE/g" \
-        -e "s/\[GITHUB_ORG\]/$GITHUB_ORG/g" \
-        -e "s/\[GITHUB_REPO\]/$GITHUB_REPO/g" \
+    sed -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+        -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
+        -e "s|\[GITHUB_ORG\]|$GITHUB_ORG|g" \
+        -e "s|\[GITHUB_REPO\]|$GITHUB_REPO|g" \
         "$SCRIPT_DIR/playground/blueprint.json" > "_playground/blueprint.json"
     
-    sed -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-        -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-        -e "s/\[MAIN_FILE\]/$MAIN_FILE/g" \
+    sed -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+        -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
         "$SCRIPT_DIR/playground/blueprint-local.json" > "_playground/blueprint-local.json"
     
     print_info "✓ WordPress Playground configurations created"
@@ -318,16 +318,16 @@ if [ ! -f "composer.json" ]; then
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         # Create composer.json from template
         # Generate author slug from author name (lowercase, replace spaces with hyphens)
-        AUTHOR_SLUG=$(echo "$AUTHOR_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g')
+        AUTHOR_SLUG=$(echo "$AUTHOR_NAME" | tr '[:upper:]' '[:lower:]' | sed 's| |-|g')
         
-        sed -e "s/\[AUTHOR_SLUG\]/$AUTHOR_SLUG/g" \
-            -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-            -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-            -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
-            -e "s/\[AUTHOR_NAME\]/$AUTHOR_NAME/g" \
-            -e "s/\[AUTHOR_EMAIL\]/$AUTHOR_EMAIL/g" \
-            -e "s/\[PROJECT_HOMEPAGE\]/$PROJECT_HOMEPAGE/g" \
-            -e "s/\[VERSION\]/$VERSION/g" \
+        sed -e "s|\[AUTHOR_SLUG\]|$AUTHOR_SLUG|g" \
+            -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+            -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+            -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+            -e "s|\[AUTHOR_NAME\]|$AUTHOR_NAME|g" \
+            -e "s|\[AUTHOR_EMAIL\]|$AUTHOR_EMAIL|g" \
+            -e "s|\[PROJECT_HOMEPAGE\]|$PROJECT_HOMEPAGE|g" \
+            -e "s|\[VERSION\]|$VERSION|g" \
             "$SCRIPT_DIR/package-scripts/composer.json" > composer.json
         
         # Remove homepage field if empty
@@ -382,13 +382,13 @@ if [ -f "CLAUDE.md" ]; then
         cp "$SCRIPT_DIR/claude/template.md" CLAUDE.md.tmp
         
         # Replace placeholders
-        sed -i.bak -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-            -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
-            -e "s/\[PROJECT_SUBTYPE\]/$PROJECT_SUBTYPE/g" \
-            -e "s/\[MAIN_FILE\]/$MAIN_FILE/g" \
-            -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-            -e "s/\[WP_VERSION\]/6.0/g" \
-            -e "s/\[PHP_VERSION\]/8.2/g" CLAUDE.md.tmp && rm CLAUDE.md.tmp.bak
+        sed -i.bak -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+            -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+            -e "s|\[PROJECT_SUBTYPE\]|$PROJECT_SUBTYPE|g" \
+            -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
+            -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+            -e "s|\[WP_VERSION\]|6.0|g" \
+            -e "s|\[PHP_VERSION\]|8.2|g" CLAUDE.md.tmp && rm CLAUDE.md.tmp.bak
         
         # Use a more robust method to insert sections
         # Create a working copy
@@ -416,8 +416,8 @@ if [ -f "CLAUDE.md" ]; then
         fi
         
         # Final replacements
-        sed -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
-            -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.working > CLAUDE.md
+        sed -e "s|\[RELEASE_PROCESS\]|See bin/release.sh for automated release process|g" \
+            -e "s|\[CUSTOM_SECTIONS\]||g" CLAUDE.md.working > CLAUDE.md
         
         # Clean up ALL temporary files
         rm -f CLAUDE.md.tmp CLAUDE.md.working CLAUDE.md.working.bak
@@ -428,13 +428,13 @@ else
     cp "$SCRIPT_DIR/claude/template.md" CLAUDE.md
     
     # Replace placeholders (same as above)
-    sed -i.bak -e "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" \
-        -e "s/\[PROJECT_DESCRIPTION\]/$PROJECT_DESCRIPTION/g" \
-        -e "s/\[PROJECT_SUBTYPE\]/$PROJECT_SUBTYPE/g" \
-        -e "s/\[MAIN_FILE\]/$MAIN_FILE/g" \
-        -e "s/\[PLUGIN_SLUG\]/$PLUGIN_SLUG/g" \
-        -e "s/\[WP_VERSION\]/6.0/g" \
-        -e "s/\[PHP_VERSION\]/8.2/g" CLAUDE.md && rm CLAUDE.md.bak
+    sed -i.bak -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+        -e "s|\[PROJECT_SUBTYPE\]|$PROJECT_SUBTYPE|g" \
+        -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
+        -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+        -e "s|\[WP_VERSION\]|6.0|g" \
+        -e "s|\[PHP_VERSION\]|8.2|g" CLAUDE.md && rm CLAUDE.md.bak
     
     # Create temporary file for processing
     cp CLAUDE.md CLAUDE.md.working
@@ -461,8 +461,8 @@ else
     fi
     
     # Final replacements
-    sed -e "s/\[RELEASE_PROCESS\]/See bin\/release.sh for automated release process/g" \
-        -e "s/\[CUSTOM_SECTIONS\]//g" CLAUDE.md.working > CLAUDE.md
+    sed -e "s|\[RELEASE_PROCESS\]|See bin/release.sh for automated release process|g" \
+        -e "s|\[CUSTOM_SECTIONS\]||g" CLAUDE.md.working > CLAUDE.md
     
     # Clean up ALL temporary files
     rm -f CLAUDE.md.working CLAUDE.md.working.bak

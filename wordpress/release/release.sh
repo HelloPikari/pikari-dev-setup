@@ -102,12 +102,12 @@ print_info "Starting release process for v$NEW_VERSION..."
 print_info "Updating version numbers..."
 
 # Update main plugin/theme file
-sed -i.bak "s/Version: .*/Version: $NEW_VERSION/" "$MAIN_FILE" && rm "${MAIN_FILE}.bak"
+sed -i.bak "s|Version: .*|Version: $NEW_VERSION|" "$MAIN_FILE" && rm "${MAIN_FILE}.bak"
 
 # Update version constant in main file if it exists
 CONSTANT_NAME=$(echo "${PWD##*/}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')_VERSION
 if grep -q "define( '$CONSTANT_NAME'" "$MAIN_FILE"; then
-    sed -i.bak "s/define( '$CONSTANT_NAME', '.*' );/define( '$CONSTANT_NAME', '$NEW_VERSION' );/" "$MAIN_FILE" && rm "${MAIN_FILE}.bak"
+    sed -i.bak "s|define( '$CONSTANT_NAME', '.*' );|define( '$CONSTANT_NAME', '$NEW_VERSION' );|" "$MAIN_FILE" && rm "${MAIN_FILE}.bak"
 fi
 
 # Update package.json
@@ -124,14 +124,14 @@ if [ -f "CHANGELOG.md" ]; then
     # Get today's date
     TODAY=$(date +%Y-%m-%d)
     # Replace [Unreleased] with the new version
-    sed -i.bak "s/## \[Unreleased\]/## [Unreleased]\n\n## [$NEW_VERSION] - $TODAY/" CHANGELOG.md && rm CHANGELOG.md.bak
+    sed -i.bak "s|## \[Unreleased\]|## [Unreleased]\n\n## [$NEW_VERSION] - $TODAY|" CHANGELOG.md && rm CHANGELOG.md.bak
     
     # Update comparison links at the bottom of CHANGELOG
     # Get GitHub repo info
-    REPO_URL=$(git config --get remote.origin.url | sed 's/\.git$//' | sed 's/git@github.com:/https:\/\/github.com\//')
+    REPO_URL=$(git config --get remote.origin.url | sed 's|\.git$||' | sed 's|git@github.com:|https://github.com/|')
     
     # First, update the Unreleased comparison
-    sed -i.bak "s|\[Unreleased\]: .*/compare/.*\.\.\.HEAD|\[Unreleased\]: $REPO_URL/compare/v$NEW_VERSION...HEAD|" CHANGELOG.md && rm CHANGELOG.md.bak
+    sed -i.bak "s|\\[Unreleased\\]: .*/compare/.*\\.\\.\\.HEAD|[Unreleased]: $REPO_URL/compare/v$NEW_VERSION...HEAD|" CHANGELOG.md && rm CHANGELOG.md.bak
     
     # Add new version comparison link (insert after [Unreleased] line)
     PREV_VERSION=$CURRENT_VERSION
@@ -211,7 +211,7 @@ print_info "  2. Extract release notes from CHANGELOG.md"
 print_info "  3. Create a GitHub release with the ZIP file"
 print_info ""
 print_info "Monitor the release progress at:"
-print_info "https://github.com/$(git config --get remote.origin.url | sed 's/.*://;s/\.git$//')/actions"
+print_info "https://github.com/$(git config --get remote.origin.url | sed 's|.*:||;s|\.git$||')/actions"
 print_info ""
 print_info "Once completed, the release will be available at:"
-print_info "https://github.com/$(git config --get remote.origin.url | sed 's/.*://;s/\.git$//')/releases/tag/v$NEW_VERSION"
+print_info "https://github.com/$(git config --get remote.origin.url | sed 's|.*:||;s|\.git$||')/releases/tag/v$NEW_VERSION"
