@@ -42,8 +42,9 @@ get_wordpress_info() {
         PROJECT_SUBTYPE="plugin"
     fi
     
-    # Get plugin slug from directory name
-    PLUGIN_SLUG=$(basename "$(pwd)")
+    # Get plugin slug from directory name and sanitize it
+    # Ensure it's lowercase, alphanumeric with hyphens only
+    PLUGIN_SLUG=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's|[^a-z0-9-]||g' | sed 's|-\+|-|g' | sed 's|^-||' | sed 's|-$||')
     
     # Use GitHub info from environment or fallback
     GITHUB_ORG="${PIKARI_GITHUB_ORG:-[YOUR_GITHUB_ORG]}"
@@ -317,8 +318,9 @@ if [ ! -f "composer.json" ]; then
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         # Create composer.json from template
-        # Generate author slug from author name (lowercase, replace spaces with hyphens)
-        AUTHOR_SLUG=$(echo "$AUTHOR_NAME" | tr '[:upper:]' '[:lower:]' | sed 's| |-|g')
+        # Generate author slug from author name (lowercase, alphanumeric with hyphens only)
+        # Trim spaces, remove non-alphanumeric except spaces, collapse spaces, convert to hyphens
+        AUTHOR_SLUG=$(echo "$AUTHOR_NAME" | sed 's|^ *||;s| *$||' | tr '[:upper:]' '[:lower:]' | sed 's|[^a-z0-9 ]||g' | sed 's|  *| |g' | sed 's| |-|g' | sed 's|-\+|-|g' | sed 's|^-||;s|-$||')
         
         sed -e "s|\[AUTHOR_SLUG\]|$AUTHOR_SLUG|g" \
             -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
