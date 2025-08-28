@@ -193,7 +193,7 @@ Example scenario:
 
 ### Version Management with Pikari
 
-**Important**: Pikari's release script (`bin/release.sh`) does NOT automatically update block.json versions. This is intentional and follows best practices.
+**Important**: Pikari's GitHub release process does NOT automatically update block.json versions. This is intentional and follows best practices.
 
 To manage block versions:
 1. **Manual Updates**: Update block.json version manually when block changes

@@ -38,9 +38,9 @@ git clone https://github.com/HelloPikari/pikari-dev-setup.git
   - Demo blueprint for GitHub
 
 - **Release Automation**
-  - Automated version updates
-  - Build branch tagging
-  - GitHub release creation
+  - Release Drafter for automated changelogs
+  - GitHub Releases with assets
+  - Composer distribution via dist branch
 
 - **CLAUDE.md**
   - AI assistant context
@@ -58,9 +58,8 @@ pikari-dev-setup/
 └── wordpress/           # WordPress-specific setup
     ├── setup.sh         # WordPress setup script
     ├── linting/         # Linting configurations
-    ├── github/          # GitHub workflows
+    ├── github/          # GitHub workflows and configs
     ├── playground/      # WordPress Playground configs
-    ├── release/         # Release automation
     ├── claude/          # WordPress CLAUDE.md templates
     └── package-scripts/ # npm/composer scripts
 ```
@@ -113,7 +112,9 @@ npm run playground   # Launch WordPress Playground
 **Create a release:**
 
 ```bash
-./bin/release.sh     # Automated release process
+# 1. Merge PR to main branch
+# 2. Publish the draft release on GitHub  
+# 3. Assets and dist branch are created automatically
 ```
 
 ## 🛠️ Customization

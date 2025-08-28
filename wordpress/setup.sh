@@ -56,6 +56,10 @@ get_wordpress_info() {
     AUTHOR_EMAIL="${PIKARI_AUTHOR_EMAIL:-your@email.com}"
     PROJECT_HOMEPAGE="${PIKARI_PROJECT_HOMEPAGE:-}"
     VERSION="${PIKARI_VERSION:-1.0.0}"
+    
+    # Generate author slug from author name (lowercase, alphanumeric with hyphens only)
+    # Trim spaces, remove non-alphanumeric except spaces, collapse spaces, convert to hyphens
+    AUTHOR_SLUG=$(echo "$AUTHOR_NAME" | sed 's|^ *||;s| *$||' | tr '[:upper:]' '[:lower:]' | sed 's|[^a-z0-9 ]||g' | sed 's|  *| |g' | sed 's| |-|g' | sed 's|-\+|-|g' | sed 's|^-||;s|-$||')
 }
 
 # Start setup
@@ -177,6 +181,19 @@ else
     print_info "✓ CHANGELOG.md already exists"
 fi
 
+# Create docs directory and copy release documentation
+if [ ! -d "docs" ]; then
+    mkdir -p docs
+fi
+
+if [ ! -f "docs/releases.md" ]; then
+    sed -e "s|pikari-gutenberg-accordion|$PLUGIN_SLUG|g" \
+        "$SCRIPT_DIR/docs/releases.md" > docs/releases.md
+    print_info "✓ Created docs/releases.md"
+else
+    print_info "✓ docs/releases.md already exists"
+fi
+
 # Step 4: Setup Linting
 print_header "Setting up Linting"
 
@@ -238,19 +255,37 @@ print_header "Setting up GitHub Workflows"
 
 mkdir -p .github/workflows
 
-# Copy and customize workflows
-for workflow in "$SCRIPT_DIR/github"/*.yml; do
-    filename=$(basename "$workflow")
-    target=".github/workflows/$filename"
-    
-    # Copy and replace placeholders
-    sed -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
-        -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
-        -e "s|\[MAIN_JS_FILE\]|$(ls build/*.js 2>/dev/null | head -1 | xargs basename || echo 'index.js')|g" \
-        "$workflow" > "$target"
+# Copy GitHub config files to .github/
+for config in "$SCRIPT_DIR/github"/*.yml; do
+    if [ -f "$config" ]; then
+        filename=$(basename "$config")
+        target=".github/$filename"
+        
+        # Copy and replace placeholders
+        sed -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+            -e "s|\[AUTHOR_SLUG\]|$AUTHOR_SLUG|g" \
+            -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+            -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
+            "$config" > "$target"
+    fi
 done
 
-print_info "✓ GitHub workflows created"
+# Copy workflow files to .github/workflows/
+for workflow in "$SCRIPT_DIR/github/workflows"/*.yml; do
+    if [ -f "$workflow" ]; then
+        filename=$(basename "$workflow")
+        target=".github/workflows/$filename"
+        
+        # Copy and replace placeholders
+        sed -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+            -e "s|\[AUTHOR_SLUG\]|$AUTHOR_SLUG|g" \
+            -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+            -e "s|\[MAIN_FILE\]|$MAIN_FILE|g" \
+            "$workflow" > "$target"
+    fi
+done
+
+print_info "✓ GitHub workflows and configuration created"
 
 # Step 7: Setup WordPress Playground
 print_header "Setting up WordPress Playground"
@@ -276,19 +311,7 @@ else
     print_warning "⚠ _playground directory already exists, skipping"
 fi
 
-# Step 8: Setup Release Scripts
-print_header "Setting up Release Automation"
-
-if [ ! -d "bin" ]; then
-    mkdir -p bin
-    cp "$SCRIPT_DIR/release/release.sh" bin/
-    chmod +x bin/release.sh
-    print_info "✓ Release script created in bin/release.sh"
-else
-    print_warning "⚠ bin directory already exists, skipping release script"
-fi
-
-# Step 9: Update package.json and composer.json
+# Step 8: Update package.json and composer.json
 print_header "Updating Configuration Files"
 
 # Update existing package.json if needed
@@ -367,7 +390,7 @@ elif command -v jq &> /dev/null; then
     fi
 fi
 
-# Step 10: Create CLAUDE.md
+# Step 9: Create CLAUDE.md
 print_header "Creating CLAUDE.md"
 
 # Ensure we clean up temp files even if the script fails
@@ -418,7 +441,7 @@ if [ -f "CLAUDE.md" ]; then
         fi
         
         # Final replacements
-        sed -e "s|\[RELEASE_PROCESS\]|See bin/release.sh for automated release process|g" \
+        sed -e "s|\[RELEASE_PROCESS\]|See GitHub Releases for automated releases via Release Drafter|g" \
             -e "s|\[CUSTOM_SECTIONS\]||g" CLAUDE.md.working > CLAUDE.md
         
         # Clean up ALL temporary files
@@ -463,7 +486,7 @@ else
     fi
     
     # Final replacements
-    sed -e "s|\[RELEASE_PROCESS\]|See bin/release.sh for automated release process|g" \
+    sed -e "s|\[RELEASE_PROCESS\]|See GitHub Releases for automated releases via Release Drafter|g" \
         -e "s|\[CUSTOM_SECTIONS\]||g" CLAUDE.md.working > CLAUDE.md
     
     # Clean up ALL temporary files
@@ -471,7 +494,7 @@ else
     print_info "✓ CLAUDE.md created"
 fi
 
-# Step 11: Install dependencies
+# Step 10: Install dependencies
 print_header "Installing Dependencies"
 
 if [ -f "package.json" ]; then
@@ -492,7 +515,7 @@ if [ -f "composer.json" ]; then
     fi
 fi
 
-# Step 12: Cleanup
+# Step 11: Cleanup
 print_header "Cleanup"
 
 # Get the actual setup folder name (handles downloaded zips with different names)
@@ -532,7 +555,8 @@ echo "   - Local development blueprint"
 echo "   - Demo blueprint for GitHub"
 echo ""
 echo "📦 Release Automation:"
-echo "   - bin/release.sh for automated releases"
+echo "   - GitHub Releases with automated changelog via Release Drafter"
+echo "   - Composer distribution via dist branch"
 echo ""
 echo "🤖 AI Assistant Context:"
 echo "   - CLAUDE.md with project guidelines"
@@ -547,4 +571,6 @@ echo "For local development with WordPress Playground:"
 echo "   npm run playground"
 echo ""
 echo "To create a release:"
-echo "   ./bin/release.sh"
+echo "   1. Merge PR to main branch"
+echo "   2. Publish the draft release on GitHub"
+echo "   3. Assets and dist branch are created automatically"
