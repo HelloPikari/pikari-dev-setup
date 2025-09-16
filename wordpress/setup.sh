@@ -181,6 +181,39 @@ else
     print_info "✓ CHANGELOG.md already exists"
 fi
 
+# Create LICENSE file
+if [ ! -f "LICENSE" ]; then
+    cp "$SHARED_DIR/templates/LICENSE" LICENSE
+    print_info "✓ Created LICENSE"
+else
+    print_info "✓ LICENSE already exists"
+fi
+
+# Create readme.txt (WordPress plugin/theme readme)
+if [ ! -f "readme.txt" ]; then
+    sed -e "s|\[PROJECT_NAME\]|$PROJECT_NAME|g" \
+        -e "s|\[PROJECT_DESCRIPTION\]|$PROJECT_DESCRIPTION|g" \
+        -e "s|\[AUTHOR_NAME\]|$AUTHOR_NAME|g" \
+        -e "s|\[AUTHOR_EMAIL\]|$AUTHOR_EMAIL|g" \
+        -e "s|\[AUTHOR_URI\]|$PROJECT_HOMEPAGE|g" \
+        -e "s|\[AUTHOR_SLUG\]|$AUTHOR_SLUG|g" \
+        -e "s|\[PLUGIN_SLUG\]|$PLUGIN_SLUG|g" \
+        -e "s|\[VERSION\]|$VERSION|g" \
+        -e "s|\[GITHUB_ORG\]|$GITHUB_ORG|g" \
+        -e "s|\[GITHUB_REPO\]|$GITHUB_REPO|g" \
+        -e "s|\[PROJECT_HOMEPAGE\]|$PROJECT_HOMEPAGE|g" \
+        "$SCRIPT_DIR/readme.txt" > readme.txt
+
+    # Remove empty author URI line if no homepage
+    if [ -z "$PROJECT_HOMEPAGE" ]; then
+        sed -i.bak '/- Website: $/d' readme.txt && rm readme.txt.bak
+    fi
+
+    print_info "✓ Created readme.txt"
+else
+    print_info "✓ readme.txt already exists"
+fi
+
 # Create docs directory and copy release documentation
 if [ ! -d "docs" ]; then
     mkdir -p docs

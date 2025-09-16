@@ -46,9 +46,6 @@
     ],
     "*.{css,scss}": [
       "wp-scripts lint-style"
-    ],
-    "*.md": [
-      "wp-scripts lint-md-docs"
     ]
   }
 }
