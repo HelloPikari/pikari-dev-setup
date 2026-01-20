@@ -41,12 +41,32 @@ function [PLUGIN_FUNCTION_PREFIX]_init() {
     // Load plugin text domain.
     load_plugin_textdomain( '[PLUGIN_SLUG]', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
+    // Register Gutenberg blocks.
+    [PLUGIN_FUNCTION_PREFIX]_register_blocks();
+
     // Hook into WordPress.
     add_action( 'wp_enqueue_scripts', '[PLUGIN_FUNCTION_PREFIX]_enqueue_scripts' );
 
     // Add more initialization code here.
 }
-add_action( 'plugins_loaded', '[PLUGIN_FUNCTION_PREFIX]_init' );
+add_action( 'init', '[PLUGIN_FUNCTION_PREFIX]_init' );
+
+/**
+ * Register Gutenberg blocks.
+ */
+function [PLUGIN_FUNCTION_PREFIX]_register_blocks() {
+    $build_dir = __DIR__ . '/build/blocks';
+
+    if ( ! file_exists( $build_dir ) ) {
+        return;
+    }
+
+    $block_json_files = glob( $build_dir . '/*/block.json' );
+
+    foreach ( $block_json_files as $block_json_file ) {
+        register_block_type( dirname( $block_json_file ) );
+    }
+}
 
 /**
  * Enqueue plugin scripts and styles.
